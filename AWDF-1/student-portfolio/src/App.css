@@ -1,0 +1,40 @@
+/* App-specific styles - most styling is in index.css for better organization */
+
+.app {
+  position: relative;
+  width: 100%;
+  min-height: 100vh;
+  background: transparent; /* Let gradient background show through */
+}
+
+/* Ensure smooth transitions for dynamic content */
+.app * {
+  transition-property: transform, box-shadow, border-color, background-color, color;
+  transition-duration: 0.3s;
+  transition-timing-function: ease;
+}
+
+/* Focus styles for accessibility */
+.nav-link:focus,
+.btn-primary:focus,
+.contact-btn:focus,
+.project-link:focus {
+  outline: 2px solid var(--color-primary);
+  outline-offset: 2px;
+}
+
+/* Print styles */
+@media print {
+  .navbar {
+    display: none;
+  }
+  
+  .gradient-background {
+    display: none;
+  }
+  
+  .app {
+    background: white;
+    color: black;
+  }
+}
