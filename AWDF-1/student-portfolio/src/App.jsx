@@ -7,6 +7,8 @@ import Home from './pages/Home'
 import SkillsPage from './pages/SkillsPage'
 import Projects from './pages/Projects'
 import Contact from './pages/Contact'
+import GithubRepos from './pages/GithubRepos'
+import TodoPage from './pages/TodoPage'
 import NotFound from './pages/NotFound'
 import { portfolioData } from './data'
 import './App.css'
@@ -33,6 +35,8 @@ function App() {
           <Route path="/skills" element={<SkillsPage />} />
           <Route path="/projects" element={<Projects />} />
           <Route path="/contact" element={<Contact />} />
+          <Route path="/repos" element={<GithubRepos />} />
+          <Route path="/todo" element={<TodoPage />} />
           <Route path="*" element={<NotFound />} />
         </Routes>
         <Footer name={portfolioData.name} />

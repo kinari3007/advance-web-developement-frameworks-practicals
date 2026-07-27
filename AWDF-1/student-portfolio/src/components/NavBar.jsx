@@ -4,6 +4,8 @@ const navItems = [
   { path: '/', label: 'Home' },
   { path: '/skills', label: 'Skills' },
   { path: '/projects', label: 'Projects' },
+  { path: '/repos', label: 'GitHub Repos' },
+  { path: '/todo', label: 'To-Do' },
   { path: '/contact', label: 'Contact' }
 ]
 
