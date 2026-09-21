@@ -30,18 +30,18 @@ export default function Skills({ skillList }) {
   return (
     <section id="skills" className="section">
       <div className="container">
-        <div className="card">
+        <div className="skills-surface">
           <span className="section-label">Technical Skills</span>
-          <h2 className="section-title">Technologies & Tools</h2>
+          <h2 className="section-title">The tools I<br /><em>think with.</em></h2>
           
           <div className="skills-content">
             {skillCategories.map((category, index) => (
               category.skills.length > 0 && (
                 <div key={index} className="skills-category">
-                  <h3 className="category-title">{category.title}</h3>
+                  <h3 className="category-title"><span>0{index + 1}</span>{category.title}</h3>
                   <div className="skills-list">
                     {category.skills.map((skill, skillIndex) => (
-                      <span key={skillIndex} className="skill-badge">
+                      <span key={skillIndex} className="skill-badge" style={{ '--skill-index': skillIndex }}>
                         {skill}
                       </span>
                     ))}

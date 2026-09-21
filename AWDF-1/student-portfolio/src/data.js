@@ -5,7 +5,7 @@ export const portfolioData = {
   bio: "Hi, I'm Kinari Thummar, a 3rd-year B.Tech AIML student with a strong enthusiasm for Artificial Intelligence, Machine Learning, and Data Science. I love building projects that turn ideas into real, working solutions and enjoy exploring product-based interactions that make technology more intuitive and user-friendly. I'm always eager to learn new tools and frameworks, and I thrive on the challenge of solving problems creatively through code.",
   
   skillList: [
-    "Python",,"Data Visualization","Power BI","SupaBase",
+    "Python", "Data Visualization", "Power BI", "SupaBase",
     "Machine Learning", "Data Science", "Pandas", "NumPy", "Scikit-learn",
     "TensorFlow", "SQL", "MongoDB", "Git","Postgre SQL","C++","Java","C Programming","HTML","CSS","Streamlit"
   ],

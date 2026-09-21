@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import { Link, useLocation } from 'react-router-dom'
 
 const navItems = [
@@ -11,11 +12,15 @@ const navItems = [
 
 export default function NavBar({ theme, toggleTheme }) {
   const location = useLocation()
+  const [menuOpen, setMenuOpen] = useState(false)
 
   return (
-    <nav className="navbar">
+    <nav className={`navbar ${menuOpen ? 'menu-open' : ''}`}>
       <div className="nav-container">
-        <ul className="nav-links">
+        <button className="nav-menu-toggle" type="button" aria-expanded={menuOpen} aria-label="Toggle navigation" onClick={() => setMenuOpen((open) => !open)}>
+          <span /><span />
+        </button>
+        <ul className="nav-links" onClick={() => setMenuOpen(false)}>
           {navItems.map(({ path, label }) => (
             <li key={path}>
               <Link
@@ -33,7 +38,7 @@ export default function NavBar({ theme, toggleTheme }) {
               title={`Switch to ${theme === 'dark' ? 'light' : 'dark'} mode`}
               style={{ marginLeft: '12px' }}
             >
-              {theme === 'dark' ? '☀️' : '🌙'}
+              {theme === 'dark' ? 'Light' : 'Dark'}
             </button>
           </li>
         </ul>

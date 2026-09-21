@@ -9,7 +9,8 @@ export default function Projects({ projectList }) {
         
         <div className="projects-grid">
           {projectList.map((project, index) => (
-            <div key={index} className="project-card">
+            <article key={index} className="project-card">
+              <div className="project-number">0{index + 1}</div>
               <div className="project-content">
                 <h3 className="project-title">{project.title}</h3>
                 <p className="project-description">{project.description}</p>
@@ -30,10 +31,10 @@ export default function Projects({ projectList }) {
                   rel="noopener noreferrer" 
                   className="project-link"
                 >
-                  View on GitHub →
+                  View project <span>↗</span>
                 </a>
               </div>
-            </div>
+            </article>
           ))}
         </div>
       </div>
