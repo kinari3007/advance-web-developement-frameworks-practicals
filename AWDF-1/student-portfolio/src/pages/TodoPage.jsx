@@ -3,26 +3,21 @@ import { useEffect, useState } from 'react'
 const API_URL = 'http://localhost:5000/tasks'
 
 export default function TodoPage() {
-  const [tasks, setTasks] = useState([])
+  const [tasks, setTasks]               = useState([])
   const [newTaskTitle, setNewTaskTitle] = useState('')
-  const [editingTaskId, setEditingTaskId] = useState(null)
+  const [editingTaskId, setEditingTaskId]       = useState(null)
   const [editingTaskTitle, setEditingTaskTitle] = useState('')
-  const [filter, setFilter] = useState('all')
+  const [filter, setFilter]   = useState('all')
   const [loading, setLoading] = useState(true)
-  const [error, setError] = useState(null)
+  const [error, setError]     = useState(null)
 
   const fetchTasks = async () => {
     setLoading(true)
     setError(null)
-
     try {
-      const response = await fetch(API_URL)
-
-      if (!response.ok) {
-        throw new Error('Unable to load tasks from the server.')
-      }
-
-      const data = await response.json()
+      const res = await fetch(API_URL)
+      if (!res.ok) throw new Error('Unable to load tasks from the server.')
+      const data = await res.json()
       setTasks(data)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong while loading tasks.')
@@ -31,32 +26,20 @@ export default function TodoPage() {
     }
   }
 
-  useEffect(() => {
-    fetchTasks()
-  }, [])
+  useEffect(() => { fetchTasks() }, [])
 
-  const handleAddTask = async (event) => {
-    event.preventDefault()
-
-    if (!newTaskTitle.trim()) {
-      setError('Please enter a task title.')
-      return
-    }
-
+  const handleAddTask = async (e) => {
+    e.preventDefault()
+    if (!newTaskTitle.trim()) { setError('Please enter a task title.'); return }
     try {
-      const response = await fetch(API_URL, {
+      const res = await fetch(API_URL, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: newTaskTitle })
+        body: JSON.stringify({ title: newTaskTitle }),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Unable to add task.')
-      }
-
-      setTasks((prevTasks) => [...prevTasks, data])
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to add task.')
+      setTasks(prev => [...prev, data])
       setNewTaskTitle('')
       setError(null)
     } catch (err) {
@@ -66,21 +49,14 @@ export default function TodoPage() {
 
   const handleToggleTask = async (taskId, completed) => {
     try {
-      const response = await fetch(`${API_URL}/${taskId}`, {
+      const res = await fetch(`${API_URL}/${taskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ completed })
+        body: JSON.stringify({ completed }),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Unable to update task.')
-      }
-
-      setTasks((prevTasks) =>
-        prevTasks.map((task) => (task.id === taskId ? data : task))
-      )
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to update task.')
+      setTasks(prev => prev.map(t => t.id === taskId ? data : t))
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong while updating the task.')
     }
@@ -88,17 +64,10 @@ export default function TodoPage() {
 
   const handleDeleteTask = async (taskId) => {
     try {
-      const response = await fetch(`${API_URL}/${taskId}`, {
-        method: 'DELETE'
-      })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Unable to delete task.')
-      }
-
-      setTasks((prevTasks) => prevTasks.filter((task) => task.id !== taskId))
+      const res = await fetch(`${API_URL}/${taskId}`, { method: 'DELETE' })
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to delete task.')
+      setTasks(prev => prev.filter(t => t.id !== taskId))
       setError(null)
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Something went wrong while deleting the task.')
@@ -118,27 +87,16 @@ export default function TodoPage() {
   }
 
   const handleSaveEditing = async (taskId) => {
-    if (!editingTaskTitle.trim()) {
-      setError('Please enter a task title.')
-      return
-    }
-
+    if (!editingTaskTitle.trim()) { setError('Please enter a task title.'); return }
     try {
-      const response = await fetch(`${API_URL}/${taskId}`, {
+      const res = await fetch(`${API_URL}/${taskId}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ title: editingTaskTitle })
+        body: JSON.stringify({ title: editingTaskTitle }),
       })
-
-      const data = await response.json()
-
-      if (!response.ok) {
-        throw new Error(data.error || 'Unable to update task.')
-      }
-
-      setTasks((prevTasks) =>
-        prevTasks.map((task) => (task.id === taskId ? data : task))
-      )
+      const data = await res.json()
+      if (!res.ok) throw new Error(data.error || 'Unable to update task.')
+      setTasks(prev => prev.map(t => t.id === taskId ? data : t))
       setEditingTaskId(null)
       setEditingTaskTitle('')
       setError(null)
@@ -147,9 +105,9 @@ export default function TodoPage() {
     }
   }
 
-  const filteredTasks = tasks.filter((task) => {
+  const filteredTasks = tasks.filter(task => {
     if (filter === 'completed') return task.completed
-    if (filter === 'active') return !task.completed
+    if (filter === 'active')    return !task.completed
     return true
   })
 
@@ -168,9 +126,10 @@ export default function TodoPage() {
   return (
     <section className="section">
       <div className="container">
+
         <div className="section-header">
           <span className="section-label">Task Manager</span>
-          <h2 className="section-title">To-Do List</h2>
+          <h2 className="section-title">To-Do <em>List</em></h2>
           <p className="repos-intro">
             Keep track of your daily tasks with a simple, live-updating list.
           </p>
@@ -182,46 +141,41 @@ export default function TodoPage() {
           </div>
         )}
 
+        {/* Add task form */}
         <form className="todo-form" onSubmit={handleAddTask}>
           <input
             type="text"
             className="repos-search"
-            placeholder="Add a new task"
+            placeholder="Add a new task…"
             value={newTaskTitle}
-            onChange={(event) => setNewTaskTitle(event.target.value)}
+            onChange={e => setNewTaskTitle(e.target.value)}
             aria-label="New task title"
           />
-          <button type="submit" className="retry-button">
-            Add Task
-          </button>
+          <button type="submit" className="retry-button">Add Task</button>
         </form>
 
+        {/* Filters */}
         <div className="todo-filters">
-          <button
-            type="button"
-            className={`todo-filter-button ${filter === 'all' ? 'active' : ''}`}
-            onClick={() => setFilter('all')}
-          >
-            All Tasks
-          </button>
-          <button
-            type="button"
-            className={`todo-filter-button ${filter === 'active' ? 'active' : ''}`}
-            onClick={() => setFilter('active')}
-          >
-            Active
-          </button>
-          <button
-            type="button"
-            className={`todo-filter-button ${filter === 'completed' ? 'active' : ''}`}
-            onClick={() => setFilter('completed')}
-          >
-            Completed
-          </button>
+          {['all', 'active', 'completed'].map(f => (
+            <button
+              key={f}
+              type="button"
+              className={`todo-filter-button${filter === f ? ' active' : ''}`}
+              onClick={() => setFilter(f)}
+            >
+              {f === 'all' ? 'All Tasks' : f.charAt(0).toUpperCase() + f.slice(1)}
+            </button>
+          ))}
         </div>
 
+        {/* Task list */}
         <div className="todo-list">
-          {filteredTasks.map((task) => (
+          {filteredTasks.length === 0 && (
+            <p style={{ color: 'var(--text-muted)', fontSize: '15px' }}>
+              No {filter !== 'all' ? filter : ''} tasks yet.
+            </p>
+          )}
+          {filteredTasks.map(task => (
             <article key={task.id} className="repo-card todo-card">
               <div className="todo-card-main">
                 <label className="todo-check">
@@ -235,11 +189,11 @@ export default function TodoPage() {
                       type="text"
                       className="todo-edit-input"
                       value={editingTaskTitle}
-                      onChange={(event) => setEditingTaskTitle(event.target.value)}
+                      onChange={e => setEditingTaskTitle(e.target.value)}
                       aria-label="Edit task title"
                     />
                   ) : (
-                    <span className={task.completed ? 'todo-title completed' : 'todo-title'}>
+                    <span className={`todo-title${task.completed ? ' completed' : ''}`}>
                       {task.title}
                     </span>
                   )}
@@ -249,27 +203,20 @@ export default function TodoPage() {
               <div className="todo-actions">
                 {editingTaskId === task.id ? (
                   <>
-                    <button type="button" className="todo-save" onClick={() => handleSaveEditing(task.id)}>
-                      Save
-                    </button>
-                    <button type="button" className="todo-cancel" onClick={handleCancelEditing}>
-                      Cancel
-                    </button>
+                    <button type="button" className="todo-save"   onClick={() => handleSaveEditing(task.id)}>Save</button>
+                    <button type="button" className="todo-cancel" onClick={handleCancelEditing}>Cancel</button>
                   </>
                 ) : (
                   <>
-                    <button type="button" className="todo-edit" onClick={() => handleStartEditing(task)}>
-                      Edit
-                    </button>
-                    <button type="button" className="todo-delete" onClick={() => handleDeleteTask(task.id)}>
-                      Delete
-                    </button>
+                    <button type="button" className="todo-edit"   onClick={() => handleStartEditing(task)}>Edit</button>
+                    <button type="button" className="todo-delete" onClick={() => handleDeleteTask(task.id)}>Delete</button>
                   </>
                 )}
               </div>
             </article>
           ))}
         </div>
+
       </div>
     </section>
   )

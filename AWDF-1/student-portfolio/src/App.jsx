@@ -17,27 +17,27 @@ function App() {
   const [theme, setTheme] = useState('dark')
 
   const toggleTheme = () => {
-    setTheme(prevTheme => prevTheme === 'dark' ? 'light' : 'dark')
+    setTheme(prev => prev === 'dark' ? 'light' : 'dark')
   }
 
   return (
     <div className={`app ${theme}`}>
-      {/* Full-page gradient background (critical) */}
+      {/* Full-page cosmic background */}
       <GradientBackground />
-      
+
       {/* Navigation */}
       <NavBar theme={theme} toggleTheme={toggleTheme} />
-      
-      {/* Content */}
+
+      {/* Page content */}
       <div className="content-wrapper">
         <Routes>
-          <Route path="/" element={<Home />} />
-          <Route path="/skills" element={<SkillsPage />} />
+          <Route path="/"         element={<Home />} />
+          <Route path="/skills"   element={<SkillsPage />} />
           <Route path="/projects" element={<Projects />} />
-          <Route path="/contact" element={<Contact />} />
-          <Route path="/repos" element={<GithubRepos />} />
-          <Route path="/todo" element={<TodoPage />} />
-          <Route path="*" element={<NotFound />} />
+          <Route path="/contact"  element={<Contact />} />
+          <Route path="/repos"    element={<GithubRepos />} />
+          <Route path="/todo"     element={<TodoPage />} />
+          <Route path="*"         element={<NotFound />} />
         </Routes>
         <Footer name={portfolioData.name} />
       </div>

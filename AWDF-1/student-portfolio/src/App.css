@@ -1,40 +1,45 @@
-/* App-specific styles - most styling is in index.css for better organization */
+/* App-level layout — visual foundation handled by index.css */
 
 .app {
   position: relative;
   width: 100%;
   min-height: 100vh;
-  background: transparent; /* Let gradient background show through */
+  background: var(--bg-void);
 }
 
-/* Ensure smooth transitions for dynamic content */
-.app * {
-  transition-property: transform, box-shadow, border-color, background-color, color;
-  transition-duration: 0.3s;
-  transition-timing-function: ease;
+/* Smooth transitions on interactive elements only — avoid blanket override */
+.nav-link,
+.btn-primary,
+.btn-outline,
+.contact-btn,
+.project-link,
+.skill-badge,
+.repo-card,
+.project-card,
+.todo-filter-button {
+  transition-property: color, background, border-color, transform, box-shadow, opacity;
+  transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* Focus styles for accessibility */
-.nav-link:focus,
-.btn-primary:focus,
-.contact-btn:focus,
-.project-link:focus {
-  outline: 2px solid var(--color-primary);
-  outline-offset: 2px;
+/* Focus ring (accessibility) */
+.nav-link:focus-visible,
+.btn-primary:focus-visible,
+.btn-outline:focus-visible,
+.contact-btn:focus-visible,
+.project-link:focus-visible,
+.retry-button:focus-visible {
+  outline: 2px solid var(--blue-glow);
+  outline-offset: 3px;
 }
 
-/* Print styles */
+/* Print */
 @media print {
-  .navbar {
+  .navbar,
+  .cosmic-bg {
     display: none;
   }
-  
-  .gradient-background {
-    display: none;
-  }
-  
   .app {
-    background: white;
-    color: black;
+    background: #fff;
+    color: #000;
   }
 }

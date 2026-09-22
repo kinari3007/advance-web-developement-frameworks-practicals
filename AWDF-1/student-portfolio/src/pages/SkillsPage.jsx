@@ -1,8 +1,108 @@
-import Skills from '../components/Skills'
+import { useEffect, useRef } from 'react'
 import { portfolioData } from '../data'
 
 export default function SkillsPage() {
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const items = el.querySelectorAll('.reveal')
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
+      { threshold: 0.08 }
+    )
+    items.forEach(item => observer.observe(item))
+    return () => observer.disconnect()
+  }, [])
+
+  const skillCategories = [
+    {
+      index: '01',
+      title: 'Languages',
+      skills: portfolioData.skillList.filter(s =>
+        ['Python', 'Java', 'C++', 'C Programming', 'HTML', 'CSS'].includes(s)
+      ),
+    },
+    {
+      index: '02',
+      title: 'AI & Machine Learning',
+      skills: portfolioData.skillList.filter(s =>
+        ['Machine Learning', 'Data Science', 'Scikit-learn', 'TensorFlow'].includes(s)
+      ),
+    },
+    {
+      index: '03',
+      title: 'Data & Analytics',
+      skills: portfolioData.skillList.filter(s =>
+        ['Pandas', 'NumPy', 'SQL', 'MongoDB', 'Postgre SQL', 'SupaBase', 'Data Visualization'].includes(s)
+      ),
+    },
+    {
+      index: '04',
+      title: 'Tools & Platforms',
+      skills: portfolioData.skillList.filter(s =>
+        ['Git', 'Power BI', 'Streamlit'].includes(s)
+      ),
+    },
+  ]
+
   return (
-    <Skills skillList={portfolioData.skillList} />
+    <section id="skills" className="section" ref={ref}>
+      <div className="container">
+        <div className="skills-surface">
+
+          <div className="skills-grid-header">
+            <div className="reveal">
+              <span className="section-label">Technical Stack</span>
+              <h2 className="section-title">
+                The tools I<br /><em>think with.</em>
+              </h2>
+            </div>
+            <p
+              className="reveal reveal-delay-2"
+              style={{ color: 'var(--text-muted)', fontSize: '14px', maxWidth: '300px', lineHeight: '1.75' }}
+            >
+              {portfolioData.skillList.length} technologies spanning AI, data science,
+              full-stack development, and analytics tooling.
+            </p>
+          </div>
+
+          <div className="skills-content">
+            {skillCategories.map((cat, i) =>
+              cat.skills.length > 0 && (
+                <div key={i} className={`skills-category reveal reveal-delay-${i + 1}`}>
+                  <h3 className="category-title">
+                    <span>{cat.index}</span>
+                    {cat.title}
+                  </h3>
+                  <div className="skills-list">
+                    {cat.skills.map((skill, j) => (
+                      <span key={j} className="skill-badge">{skill}</span>
+                    ))}
+                  </div>
+                </div>
+              )
+            )}
+          </div>
+
+          {/* All skills flat view */}
+          <div
+            className="reveal reveal-delay-3"
+            style={{ marginTop: '80px' }}
+          >
+            <span className="section-label" style={{ marginBottom: '28px', display: 'inline-flex' }}>
+              All Technologies
+            </span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px' }}>
+              {portfolioData.skillList.map((skill, i) => (
+                <span key={i} className="skill-badge">{skill}</span>
+              ))}
+            </div>
+          </div>
+
+        </div>
+      </div>
+    </section>
   )
 }

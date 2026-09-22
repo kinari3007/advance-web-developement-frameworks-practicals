@@ -1,35 +1,33 @@
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import emailjs from '@emailjs/browser'
 
+const contactLinks = [
+  { label: 'Email',    href: 'mailto:kinarithummar@gmail.com',                        icon: '✉' },
+  { label: 'Phone',    href: 'tel:+91-9106820342',                                    icon: '☎' },
+  { label: 'LinkedIn', href: 'https://www.linkedin.com/in/kinari-thummar-97417b321/', icon: '↗' },
+  { label: 'GitHub',   href: 'https://github.com/kinari3007',                         icon: '↗' },
+]
+
 export default function Contact() {
-  const [name, setName] = useState('')
+  const [name, setName]       = useState('')
   const [subject, setSubject] = useState('')
   const [message, setMessage] = useState('')
-  const [status, setStatus] = useState('')
+  const [status, setStatus]   = useState('')   // '' | 'sending' | 'success' | 'error'
   const [validationError, setValidationError] = useState('')
 
-  const contactLinks = [
-    {
-      label: "Email",
-      href: "mailto:kinarithummar@gmail.com",
-      icon: "📧"
-    },
-    {
-      label: "Phone", 
-      href: "tel:+91-9106820342",
-      icon: "📱"
-    },
-    {
-      label: "LinkedIn",
-      href: "https://www.linkedin.com/in/kinari-thummar-97417b321/",
-      icon: "💼"
-    },
-    {
-      label: "GitHub",
-      href: "https://github.com/kinari3007", 
-      icon: "💻"
-    }
-  ]
+  const ref = useRef(null)
+
+  useEffect(() => {
+    const el = ref.current
+    if (!el) return
+    const items = el.querySelectorAll('.reveal')
+    const observer = new IntersectionObserver(
+      entries => entries.forEach(e => { if (e.isIntersecting) e.target.classList.add('visible') }),
+      { threshold: 0.06 }
+    )
+    items.forEach(item => observer.observe(item))
+    return () => observer.disconnect()
+  }, [])
 
   const handleSubmit = (e) => {
     e.preventDefault()
@@ -47,12 +45,7 @@ export default function Contact() {
       .send(
         'service_uvp09de',
         'template_y9vjml4',
-        {
-          name: name,
-          subject: subject,
-          message: message,
-          time: new Date().toLocaleString()
-        },
+        { name, subject, message, time: new Date().toLocaleString() },
         'q-J8y3d_bkqmCE9Yb'
       )
       .then(() => {
@@ -61,143 +54,34 @@ export default function Contact() {
         setSubject('')
         setMessage('')
       })
-      .catch((error) => {
+      .catch((err) => {
         setStatus('error')
-        console.error('EmailJS error:', error)
+        console.error('EmailJS error:', err)
       })
   }
 
   return (
-    <section id="contact" className="section">
+    <section id="contact" className="section" ref={ref}>
       <div className="container">
-        <div className="card">
+
+        <div className="reveal">
           <span className="section-label">Get In Touch</span>
-          <h2 className="section-title">Let's Connect</h2>
-          
-          <div className="contact-content">
+          <h2 className="section-title">Let's <em>Connect</em></h2>
+        </div>
+
+        <div className="contact-split reveal reveal-delay-1">
+
+          {/* Left: heading + quick links */}
+          <div className="contact-heading-col">
             <p className="contact-invite">
-              I'm always interested in discussing new opportunities, collaboration on interesting projects, 
-              or just having a chat about technology and innovation. Feel free to reach out!
+              Always interested in discussing new opportunities, collaborating on interesting
+              projects, or just having a chat about technology and innovation.
             </p>
-            
-            {/* Contact Form */}
-            <div className="contact-form" style={{ marginBottom: '40px' }}>
-              <h3 style={{ 
-                color: 'var(--color-white)', 
-                marginBottom: '20px', 
-                fontSize: '20px',
-                fontFamily: 'var(--font-heading)'
-              }}>
-                Send me a message
-              </h3>
-              <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '16px' }}>
-                <input
-                  type="text"
-                  value={name}
-                  onChange={(e) => {
-                    setName(e.target.value)
-                    if (validationError) setValidationError('')
-                  }}
-                  placeholder="Your name"
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    border: '1px solid var(--color-border)',
-                    background: 'rgba(59, 130, 246, 0.05)',
-                    color: 'var(--color-gray-200)',
-                    fontSize: '16px',
-                    fontFamily: 'inherit'
-                  }}
-                />
-                <input
-                  type="text"
-                  value={subject}
-                  onChange={(e) => {
-                    setSubject(e.target.value)
-                    if (validationError) setValidationError('')
-                  }}
-                  placeholder="Subject"
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    border: '1px solid var(--color-border)',
-                    background: 'rgba(59, 130, 246, 0.05)',
-                    color: 'var(--color-gray-200)',
-                    fontSize: '16px',
-                    fontFamily: 'inherit'
-                  }}
-                />
-                <textarea
-                  value={message}
-                  onChange={(e) => {
-                    setMessage(e.target.value)
-                    if (validationError) setValidationError('')
-                  }}
-                  placeholder="Type your message here..."
-                  rows={6}
-                  style={{
-                    width: '100%',
-                    padding: '16px',
-                    borderRadius: '12px',
-                    border: '1px solid var(--color-border)',
-                    background: 'rgba(59, 130, 246, 0.05)',
-                    color: 'var(--color-gray-200)',
-                    fontSize: '16px',
-                    fontFamily: 'inherit',
-                    resize: 'vertical',
-                    minHeight: '120px'
-                  }}
-                />
-                <div style={{
-                  marginTop: '8px',
-                  fontSize: '14px',
-                  color: 'var(--color-gray-400)',
-                  textAlign: 'right'
-                }}>
-                  {message.length} characters
-                </div>
-                {validationError && (
-                  <div style={{ color: '#f87171', fontSize: '14px' }}>
-                    {validationError}
-                  </div>
-                )}
-                {status === 'success' && (
-                  <div style={{ color: '#4ade80', fontSize: '14px' }}>
-                    Message sent! I&apos;ll get back to you soon.
-                  </div>
-                )}
-                {status === 'error' && (
-                  <div style={{ color: '#f87171', fontSize: '14px' }}>
-                    Something went wrong, please try again or email me directly.
-                  </div>
-                )}
-                <button
-                  type="submit"
-                  disabled={status === 'sending'}
-                  style={{
-                    width: 'fit-content',
-                    padding: '12px 20px',
-                    borderRadius: '999px',
-                    border: '1px solid var(--color-border)',
-                    background: status === 'sending' ? 'rgba(59, 130, 246, 0.3)' : 'var(--color-accent)',
-                    color: 'var(--color-white)',
-                    fontSize: '16px',
-                    fontFamily: 'inherit',
-                    cursor: status === 'sending' ? 'not-allowed' : 'pointer',
-                    opacity: status === 'sending' ? 0.8 : 1
-                  }}
-                >
-                  {status === 'sending' ? 'Sending...' : 'Send Message'}
-                </button>
-              </form>
-            </div>
-            
+
             <div className="contact-links">
-              {contactLinks.map((link, index) => (
+              {contactLinks.map((link, i) => (
                 <a
-                  key={index}
+                  key={i}
                   href={link.href}
                   target={link.href.startsWith('http') ? '_blank' : undefined}
                   rel={link.href.startsWith('http') ? 'noopener noreferrer' : undefined}
@@ -209,6 +93,54 @@ export default function Contact() {
               ))}
             </div>
           </div>
+
+          {/* Right: contact form */}
+          <div className="contact-form-col">
+            <h3 className="contact-form-title">Send a message</h3>
+            <form onSubmit={handleSubmit} className="contact-form-stack">
+              <input
+                type="text"
+                className="contact-field"
+                placeholder="Your name"
+                value={name}
+                onChange={e => { setName(e.target.value); if (validationError) setValidationError('') }}
+              />
+              <input
+                type="text"
+                className="contact-field"
+                placeholder="Subject"
+                value={subject}
+                onChange={e => { setSubject(e.target.value); if (validationError) setValidationError('') }}
+              />
+              <textarea
+                className="contact-field"
+                placeholder="Type your message here..."
+                rows={6}
+                value={message}
+                onChange={e => { setMessage(e.target.value); if (validationError) setValidationError('') }}
+                style={{ resize: 'vertical', minHeight: '130px' }}
+              />
+              <p className="contact-char-count">{message.length} characters</p>
+
+              {validationError && <p className="contact-error">{validationError}</p>}
+              {status === 'success' && (
+                <p className="contact-success">Message sent! I&apos;ll get back to you soon.</p>
+              )}
+              {status === 'error' && (
+                <p className="contact-error">Something went wrong — please try again or email me directly.</p>
+              )}
+
+              <button
+                type="submit"
+                className="btn-primary"
+                disabled={status === 'sending'}
+                style={{ alignSelf: 'flex-start', opacity: status === 'sending' ? 0.7 : 1 }}
+              >
+                {status === 'sending' ? 'Sending…' : 'Send Message'}
+              </button>
+            </form>
+          </div>
+
         </div>
       </div>
     </section>

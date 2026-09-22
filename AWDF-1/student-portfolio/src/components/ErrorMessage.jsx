@@ -3,11 +3,13 @@ export default function ErrorMessage({ message, onRetry }) {
     <section className="section">
       <div className="container">
         <div className="error-card">
-          <h3 className="error-title">Unable to load repositories</h3>
+          <h3 className="error-title">Unable to load data</h3>
           <p className="error-message">{message}</p>
-          <button type="button" className="retry-button" onClick={onRetry}>
-            Retry
-          </button>
+          {onRetry && (
+            <button type="button" className="retry-button" onClick={onRetry}>
+              Try Again
+            </button>
+          )}
         </div>
       </div>
     </section>

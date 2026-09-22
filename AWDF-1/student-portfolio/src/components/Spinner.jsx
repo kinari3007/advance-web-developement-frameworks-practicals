@@ -3,7 +3,7 @@ export default function Spinner() {
     <section className="section">
       <div className="container">
         <div className="spinner-wrapper" role="status" aria-live="polite">
-          <div className="spinner" aria-label="Loading repositories" />
+          <div className="spinner" aria-label="Loading…" />
         </div>
       </div>
     </section>

@@ -1,87 +1,142 @@
+// Cosmic Wave Visual — replaces the previous jellyfish concept.
+// Pure SVG + CSS: flowing galaxy streams, contour lines, star particles,
+// blue/purple glows. No new dependencies. Fully animated via CSS.
+
 export default function JellyfishVisual() {
   return (
-    <div className="jellyfish-scene" aria-hidden="true">
-      <div className="jellyfish-haze" />
-      <div className="jellyfish-ray ray-one" />
-      <div className="jellyfish-ray ray-two" />
-      <svg className="jellyfish-svg" viewBox="0 0 360 440" role="presentation">
-        <defs>
-          <radialGradient id="bellGlow" cx="50%" cy="22%" r="72%">
-            <stop offset="0" stopColor="#f5faff" stopOpacity=".9" />
-            <stop offset=".14" stopColor="#7ddfff" stopOpacity=".7" />
-            <stop offset=".47" stopColor="#19c8f2" stopOpacity=".58" />
-            <stop offset=".78" stopColor="#5140a8" stopOpacity=".82" />
-            <stop offset="1" stopColor="#160f4b" stopOpacity=".2" />
-          </radialGradient>
-          <linearGradient id="bellEdge" x1="0" x2="0" y1="0" y2="1">
-            <stop offset="0" stopColor="#b9f2ff" stopOpacity=".65" />
-            <stop offset=".52" stopColor="#4ca9ed" stopOpacity=".4" />
-            <stop offset="1" stopColor="#e51b87" stopOpacity=".72" />
-          </linearGradient>
-          <linearGradient id="cyanTentacle" x1="0" x2="0" y1="0" y2="1">
-            <stop stopColor="#f5faff" stopOpacity=".9" />
-            <stop offset=".28" stopColor="#7ddfff" />
-            <stop offset="1" stopColor="#19c8f2" stopOpacity=".05" />
-          </linearGradient>
-          <linearGradient id="pinkTentacle" x1="0" x2="0" y1="0" y2="1">
-            <stop stopColor="#ffd5ee" />
-            <stop offset=".3" stopColor="#e51b87" />
-            <stop offset="1" stopColor="#e51b87" stopOpacity=".05" />
-          </linearGradient>
-          <linearGradient id="reefGradient" x1="0" x2="0" y1="0" y2="1">
-            <stop stopColor="#5140a8" stopOpacity=".28" />
-            <stop offset="1" stopColor="#020b18" stopOpacity=".85" />
-          </linearGradient>
-          <radialGradient id="bellCore" cx="50%" cy="35%" r="60%">
-            <stop stopColor="#f5faff" stopOpacity=".4" />
-            <stop offset=".55" stopColor="#7ddfff" stopOpacity=".08" />
-            <stop offset="1" stopColor="#e51b87" stopOpacity=".24" />
-          </radialGradient>
-          <filter id="softBlur"><feGaussianBlur stdDeviation="8" /></filter>
-          <filter id="strandGlow"><feGaussianBlur stdDeviation="2.5" /></filter>
-          <filter id="bubbleGlow"><feGaussianBlur stdDeviation="1.8" /></filter>
-        </defs>
+    <div className="cosmic-visual" aria-hidden="true">
+      <div className="cosmic-visual-inner">
 
-        <g className="jellyfish-bubbles">
-          <circle cx="56" cy="166" r="4" /><circle cx="306" cy="116" r="3" />
-          <circle cx="285" cy="249" r="5" /><circle cx="77" cy="293" r="2.5" />
-          <circle cx="322" cy="337" r="2" /><circle cx="38" cy="350" r="3" />
-          <circle cx="42" cy="224" r="1.5" /><circle cx="326" cy="188" r="2" />
-          <circle cx="61" cy="388" r="2" /><circle cx="293" cy="385" r="3" />
-          <circle cx="89" cy="104" r="1.5" /><circle cx="264" cy="72" r="2" />
-        </g>
+        {/* Star particle field */}
+        <div className="wave-stars" />
 
-        <path className="reef-back" d="M0 418c19-24 26-5 41-28 15 21 25 17 37-8 13 17 26 12 38-17 15 24 26 15 38-8 16 24 28 25 42 4 13 17 24 16 39-7 12 22 29 28 45 8 11 14 21 18 33 2 13 24 27 16 37-10v77H0Z" fill="url(#reefGradient)" />
-        <path className="reef-front" d="M0 439c23-19 31-29 43-6 10-28 22-33 33-5 14-23 27-21 38 4 14-31 27-32 42-5 12-22 25-21 38 3 18-33 33-28 44-3 15-25 28-22 40 1 15-19 29-17 42 5 14-27 27-22 40-9v16H0Z" />
+        {/* Glow orbs — deep background depth */}
+        <div className="wave-glow-1" style={{ width: '55%', height: '45%', top: '10%', left: '15%' }} />
+        <div className="wave-glow-2" style={{ width: '45%', height: '55%', top: '40%', right: '5%' }} />
 
-        <ellipse className="bell-aura" cx="180" cy="116" rx="125" ry="73" filter="url(#softBlur)" />
-        <path className="bell-shadow" d="M63 111C67 49 112 19 180 19s113 30 117 92c-6 43-57 69-117 69S69 154 63 111Z" />
-        <path className="bell" d="M63 111C67 49 112 19 180 19s113 30 117 92c-6 43-57 69-117 69S69 154 63 111Z" fill="url(#bellGlow)" stroke="url(#bellEdge)" strokeWidth="2" />
-        <path className="bell-core" d="M85 111c8-48 45-77 95-77s87 29 95 77c-20-25-53-39-95-39s-75 14-95 39Z" fill="url(#bellCore)" />
-        <path className="bell-rim" d="M67 111c15 34 59 55 113 55s98-21 113-55c-18 20-60 31-113 31S85 131 67 111Z" />
-        <path className="bell-structure" d="M105 89c20-37 60-52 77-51m-2 1c19 5 44 18 63 49M135 44c-14 26-18 53-12 84m105-84c14 25 18 53 12 84M180 35v103M94 111c27-18 55-27 86-27s59 9 86 27M113 127c21-11 44-16 67-16s46 5 67 16" />
-        <ellipse className="bell-highlight" cx="174" cy="63" rx="37" ry="17" />
+        {/* Flowing contour SVG — inspired by ocean current maps + Van Gogh swirl */}
+        <svg
+          className="wave-svg"
+          viewBox="0 0 600 800"
+          preserveAspectRatio="xMidYMid slice"
+          xmlns="http://www.w3.org/2000/svg"
+        >
+          <defs>
+            <radialGradient id="cg1" cx="45%" cy="35%" r="55%">
+              <stop offset="0%"   stopColor="#4DB8FF" stopOpacity="0.35" />
+              <stop offset="50%"  stopColor="#247BD1" stopOpacity="0.15" />
+              <stop offset="100%" stopColor="#020611" stopOpacity="0" />
+            </radialGradient>
+            <radialGradient id="cg2" cx="65%" cy="65%" r="50%">
+              <stop offset="0%"   stopColor="#6C5CCF" stopOpacity="0.28" />
+              <stop offset="60%"  stopColor="#4C3B91" stopOpacity="0.1" />
+              <stop offset="100%" stopColor="#020611" stopOpacity="0" />
+            </radialGradient>
+            <filter id="wave-blur-sm">
+              <feGaussianBlur stdDeviation="2.5" />
+            </filter>
+            <filter id="wave-blur-lg">
+              <feGaussianBlur stdDeviation="6" />
+            </filter>
+            <filter id="glow-filter">
+              <feGaussianBlur stdDeviation="3" result="blur" />
+              <feMerge>
+                <feMergeNode in="blur" />
+                <feMergeNode in="SourceGraphic" />
+              </feMerge>
+            </filter>
+          </defs>
 
-        <g className="jellyfish-strands" fill="none" strokeLinecap="round">
-          <path className="strand-far" d="M104 166C75 214 105 244 75 288s-8 82-30 119" />
-          <path className="strand-far" d="M126 169C108 230 138 248 116 300s-14 76 4 112" />
-          <path className="strand-cyan" d="M145 166C129 207 158 239 145 282s-1 75-21 116" />
-          <path className="strand-far" d="M136 167C112 202 123 229 102 265s-20 68-8 100" />
-          <path className="strand-pink" d="M164 170C153 219 176 239 170 286s13 80-4 129" />
-          <path className="strand-cyan thick" d="M181 169C178 216 199 238 193 288s14 72 3 123" />
-          <path className="strand-pink thick" d="M198 168C207 217 189 249 211 293s2 77 15 111" />
-          <path className="strand-cyan" d="M207 167C224 203 213 232 225 267s31 64 25 103" />
-          <path className="strand-cyan" d="M218 164C238 210 211 240 237 281s25 71 11 104" />
-          <path className="strand-far" d="M239 159C275 203 245 237 279 270s29 62 31 93" />
-          <path className="strand-far" d="M116 166C83 201 97 237 67 262s-23 62-12 92" />
-        </g>
-        <g className="jellyfish-lobes">
-          <path d="M111 157c13 12 20 20 28 27" /><path d="M139 160c10 15 17 23 24 29" />
-          <path d="M177 163c3 16 5 24 7 30" /><path d="M207 160c-5 16-9 24-15 31" />
-          <path d="M236 155c-12 14-18 22-26 30" />
-        </g>
-      </svg>
-      <div className="jellyfish-foreground-particles"><i /><i /><i /><i /></div>
+          {/* Soft glow fills */}
+          <ellipse cx="230" cy="280" rx="220" ry="180" fill="url(#cg1)" />
+          <ellipse cx="400" cy="520" rx="200" ry="220" fill="url(#cg2)" />
+
+          {/* === Outer contour wave system === */}
+          {/* Each group is offset to create depth layering */}
+
+          {/* Layer 1 — widest, faintest: cosmic scale currents */}
+          <g opacity="0.18" filter="url(#wave-blur-sm)" className="wave-path-2">
+            <path d="M-20,180 C80,100 200,320 320,240 C440,160 520,380 620,300" strokeWidth="1.5" />
+            <path d="M-20,300 C100,220 240,400 360,320 C480,240 540,440 640,380" strokeWidth="1" />
+            <path d="M-20,420 C120,340 260,500 380,420 C500,340 560,520 660,460" strokeWidth="0.8" />
+            <path d="M-20,540 C140,460 280,600 400,520 C520,440 580,600 680,540" strokeWidth="0.7" />
+          </g>
+
+          {/* Layer 2 — mid contours: ocean current flow lines */}
+          <g className="wave-path-1">
+            {/* Primary swirl — upper */}
+            <path d="M 40,60 C 120,20 280,80 300,160 C 320,240 220,300 260,380 C 300,460 440,420 480,340 C 520,260 460,160 520,80" />
+            <path d="M 60,90 C 140,50 300,110 320,190 C 340,270 240,330 280,410 C 320,490 460,450 500,370 C 540,290 480,190 540,110" />
+            {/* Secondary swirl — lower */}
+            <path d="M 80,400 C 160,340 300,420 340,500 C 380,580 300,640 360,700 C 420,760 520,720 560,640" />
+            <path d="M 60,440 C 140,380 280,460 320,540 C 360,620 280,680 340,740 C 400,800 500,760 540,680" />
+            {/* Connecting stream */}
+            <path d="M 180,180 C 240,260 200,360 260,440 C 320,520 400,500 440,580 C 480,660 440,740 500,780" />
+          </g>
+
+          {/* Layer 3 — inner bright: highlighted current cores */}
+          <g className="wave-path-3" filter="url(#glow-filter)">
+            <path d="M 100,120 C 180,60 320,140 340,220 C 360,300 260,360 300,440 C 340,520 460,480 500,400" />
+            <path d="M 140,500 C 220,440 340,500 380,580 C 420,660 360,720 420,760" />
+          </g>
+
+          {/* Bright accent strands — like bioluminescent trails */}
+          <g opacity="0.55" filter="url(#glow-filter)">
+            <path
+              d="M 200,100 C 260,160 240,260 300,320 C 360,380 420,360 460,440 C 500,520 480,620 540,660"
+              fill="none"
+              stroke="#4DB8FF"
+              strokeWidth="0.7"
+              strokeDasharray="4 8"
+            />
+            <path
+              d="M 320,80 C 360,140 330,230 380,290 C 430,350 490,330 520,410"
+              fill="none"
+              stroke="#78D5FF"
+              strokeWidth="0.5"
+              strokeDasharray="3 12"
+            />
+          </g>
+
+          {/* Star/node points — glowing intersection markers */}
+          <g filter="url(#glow-filter)" opacity="0.8">
+            <circle cx="300" cy="220" r="2.5" fill="#78D5FF" />
+            <circle cx="440" cy="380" r="1.8" fill="#4DB8FF" />
+            <circle cx="200" cy="460" r="2"   fill="#6C5CCF" />
+            <circle cx="360" cy="580" r="1.5" fill="#78D5FF" />
+            <circle cx="480" cy="160" r="2"   fill="#4DB8FF" />
+            <circle cx="140" cy="320" r="1.5" fill="#6C5CCF" />
+            <circle cx="520" cy="560" r="2.2" fill="#4DB8FF" />
+          </g>
+
+          {/* Larger glowing halos on key nodes */}
+          <g opacity="0.25" filter="url(#wave-blur-lg)">
+            <circle cx="300" cy="220" r="18" fill="#4DB8FF" />
+            <circle cx="440" cy="380" r="14" fill="#6C5CCF" />
+            <circle cx="200" cy="460" r="16" fill="#247BD1" />
+            <circle cx="480" cy="160" r="12" fill="#4DB8FF" />
+          </g>
+
+          {/* Fine particle dots scattered across field */}
+          <g opacity="0.6">
+            {[
+              [80, 200], [150, 140], [420, 100], [540, 200], [60, 520],
+              [580, 460], [260, 620], [480, 700], [340, 760], [100, 680],
+              [560, 340], [380, 200], [240, 480], [500, 600], [160, 580],
+            ].map(([cx, cy], i) => (
+              <circle
+                key={i}
+                cx={cx}
+                cy={cy}
+                r={i % 3 === 0 ? 1.2 : i % 3 === 1 ? 0.8 : 1}
+                fill={i % 2 === 0 ? '#78D5FF' : '#D7E4F5'}
+                opacity={0.4 + (i % 4) * 0.15}
+              />
+            ))}
+          </g>
+        </svg>
+
+      </div>
     </div>
   )
 }

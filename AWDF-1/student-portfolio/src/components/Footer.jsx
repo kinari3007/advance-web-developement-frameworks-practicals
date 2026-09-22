@@ -1,12 +1,16 @@
 export default function Footer({ name }) {
-  const currentYear = new Date().getFullYear()
-  
+  const year = new Date().getFullYear()
+
   return (
     <footer className="footer">
       <div className="container">
-        <p className="footer-text">
-          Designed & built by {name} © {currentYear}
-        </p>
+        <div className="footer-inner">
+          <p className="footer-text">
+            Designed &amp; built by {name}
+          </p>
+          <span className="footer-dot" aria-hidden="true" />
+          <p className="footer-text">© {year}</p>
+        </div>
       </div>
     </footer>
   )
