@@ -59,6 +59,181 @@
   --color-primary:  var(--blue-glow);
 }
 
+/* ── Light Mode Overrides ──────────────────────────────────── */
+.app.light {
+  /* Backgrounds — pale blue-white */
+  --bg-void:        #EDF2FA;
+  --bg-deep:        #E3EAF6;
+  --bg-surface:     #D6E1F2;
+  --bg-panel:       rgba(211, 225, 242, 0.82);
+
+  /* Keep blues, slightly deeper for contrast */
+  --blue-dark:      #0F3470;
+  --blue-mid:       #1450A0;
+  --blue-bright:    #1A6BBE;
+  --blue-glow:      #1470CC;
+  --blue-ice:       #0D5EAD;
+
+  /* Subtle purple adjusted for light bg */
+  --purple-dark:    #3D2F80;
+  --purple-mid:     #5546BB;
+
+  /* Text — dark on light */
+  --text-primary:   #0A1628;
+  --text-secondary: #1C3457;
+  --text-muted:     #4A6080;
+
+  /* Borders */
+  --border:         rgba(20, 112, 204, 0.18);
+  --border-glow:    rgba(20, 112, 204, 0.5);
+
+  /* Glass */
+  --glass:          rgba(220, 234, 250, 0.75);
+  --glass-light:    rgba(235, 243, 255, 0.6);
+
+  /* Gradients adapted for light bg */
+  --gradient-text:  linear-gradient(135deg, #1470CC 0%, #0D5EAD 40%, #5546BB 100%);
+  --gradient-card:  linear-gradient(135deg, rgba(200, 220, 245, 0.7), rgba(230, 240, 255, 0.9));
+  --gradient-glow:  radial-gradient(ellipse at center, rgba(20, 112, 204, 0.12) 0%, transparent 70%);
+
+  /* Legacy aliases */
+  --color-white:    var(--text-primary);
+  --color-gray-200: var(--text-secondary);
+  --color-gray-400: var(--text-muted);
+  --color-border:   var(--border);
+  --color-accent:   var(--blue-bright);
+  --color-primary:  var(--blue-glow);
+}
+
+/* Light mode: override fixed backgrounds that use raw rgba values */
+.app.light .cosmic-bg {
+  background: var(--bg-void);
+}
+
+.app.light .cosmic-bg::before {
+  background:
+    radial-gradient(ellipse 80% 60% at 20% 0%,  rgba(100, 160, 240, 0.35) 0%, transparent 65%),
+    radial-gradient(ellipse 60% 50% at 85% 30%, rgba(130, 110, 220, 0.2)  0%, transparent 60%),
+    radial-gradient(ellipse 90% 70% at 50% 100%, rgba(200, 220, 245, 0.5) 0%, transparent 70%);
+}
+
+.app.light .cosmic-bg::after {
+  background-image:
+    radial-gradient(circle, rgba(20, 112, 204, 0.5)  0px, transparent 1px),
+    radial-gradient(circle, rgba(10,  60, 140, 0.35) 0px, transparent 1px),
+    radial-gradient(circle, rgba(20, 112, 204, 0.4)  0px, transparent 1px),
+    radial-gradient(circle, rgba(50,  90, 170, 0.3)  0px, transparent 1px);
+}
+
+.app.light .cosmic-wave-1 {
+  background:
+    radial-gradient(ellipse 55% 40% at 38% 50%, rgba(100, 160, 240, 0.22) 0%, transparent 70%),
+    radial-gradient(ellipse 30% 60% at 72% 40%, rgba(20,  112, 204, 0.12) 0%, transparent 65%);
+}
+
+.app.light .cosmic-wave-2 {
+  background:
+    radial-gradient(ellipse 50% 50% at 60% 50%, rgba(130, 110, 220, 0.14) 0%, transparent 65%),
+    radial-gradient(ellipse 40% 35% at 28% 42%, rgba(36,  123, 209, 0.10) 0%, transparent 60%);
+}
+
+.app.light .cosmic-particles {
+  background-image:
+    radial-gradient(circle, rgba(20, 112, 204, 0.45) 0px, transparent 1.5px),
+    radial-gradient(circle, rgba(85, 70,  187, 0.35) 0px, transparent 1px),
+    radial-gradient(circle, rgba(20, 112, 204, 0.30) 0px, transparent 1px);
+  opacity: 0.4;
+}
+
+.app.light .cosmic-contour {
+  background-image:
+    repeating-linear-gradient(
+      135deg,
+      transparent 0px,
+      transparent 58px,
+      rgba(20, 112, 204, 0.4) 58px,
+      rgba(20, 112, 204, 0.4) 59px,
+      transparent 59px,
+      transparent 120px
+    );
+  opacity: 0.08;
+}
+
+.app.light .cosmic-depth {
+  background: linear-gradient(180deg,
+    transparent 0%,
+    rgba(220, 234, 250, 0.15) 40%,
+    rgba(220, 234, 250, 0.5)  80%,
+    var(--bg-void) 100%
+  );
+}
+
+/* Light: navbar */
+.app.light .navbar.scrolled,
+.app.light .navbar.menu-open {
+  background: rgba(230, 240, 255, 0.88);
+  border-color: var(--border);
+}
+
+/* Light: nav mobile dropdown */
+.app.light .nav-links {
+  background: rgba(230, 240, 255, 0.97);
+}
+
+/* Light: skill/repo/project cards */
+.app.light .skills-category {
+  background: linear-gradient(135deg, rgba(210, 228, 252, 0.8), rgba(235, 243, 255, 0.92));
+}
+
+.app.light .repo-card,
+.app.light .project-card,
+.app.light .project-visual {
+  background: linear-gradient(135deg, rgba(200, 220, 248, 0.75), rgba(230, 242, 255, 0.9));
+}
+
+.app.light .about-stat {
+  background: linear-gradient(135deg, rgba(200, 220, 248, 0.75), rgba(230, 242, 255, 0.9));
+}
+
+.app.light .about-stat:hover {
+  background: rgba(180, 210, 245, 0.7);
+}
+
+/* Light: inputs & form fields */
+.app.light .contact-field,
+.app.light .repos-search {
+  background: rgba(220, 234, 250, 0.7);
+  color: var(--text-primary);
+}
+
+.app.light .contact-btn {
+  background: rgba(210, 228, 252, 0.6);
+}
+
+.app.light .todo-filter-button {
+  background: rgba(210, 228, 252, 0.5);
+}
+
+.app.light .tech-tag {
+  background: rgba(200, 220, 248, 0.6);
+}
+
+.app.light .skill-badge {
+  background: rgba(200, 220, 248, 0.4);
+}
+
+/* Light: SVG wave strokes in the cosmic visual */
+.app.light .wave-path-1 { stroke: rgba(20, 112, 204, 0.35); }
+.app.light .wave-path-2 { stroke: rgba(20, 112, 204, 0.22); }
+.app.light .wave-path-3 { stroke: rgba(85, 70, 187, 0.28); }
+
+.app.light .wave-glow-1 {
+  background: radial-gradient(circle, rgba(20, 112, 204, 0.18) 0%, transparent 70%);
+}
+.app.light .wave-glow-2 {
+  background: radial-gradient(circle, rgba(85, 70, 187, 0.14) 0%, transparent 70%);
+}
+
 /* ── Reset ─────────────────────────────────────────────────── */
 *, *::before, *::after {
   box-sizing: border-box;
