@@ -1,5 +1,9 @@
 import { useEffect, useReducer, useState, useRef, useCallback } from 'react'
-import { getTasks, createTask, updateTask, deleteTask } from '../api'
+import {
+  getTasks, createTask, updateTask, deleteTask,
+  register, login, getMe,
+  saveToken, getToken, removeToken,
+} from '../api'
 
 // ─────────────────────────────────────────────────────────────────────────────
 // PRIORITY HELPERS
@@ -11,63 +15,38 @@ const PRIORITIES = [
   { value: 'low',    label: 'Low'    },
 ]
 
-/** Visual style config for each priority level */
 const PRIORITY_STYLE = {
   high:   { color: '#ff6b6b', border: 'rgba(255,107,107,0.35)', bg: 'rgba(255,107,107,0.1)'  },
   medium: { color: '#4DB8FF', border: 'rgba(77,184,255,0.35)',  bg: 'rgba(77,184,255,0.08)'  },
   low:    { color: '#6ee7b7', border: 'rgba(110,231,183,0.35)', bg: 'rgba(110,231,183,0.08)' },
 }
 
-/** Small pill badge shown on each task card */
 function PriorityBadge({ priority }) {
   const s = PRIORITY_STYLE[priority] || PRIORITY_STYLE.medium
   return (
     <span style={{
-      display:       'inline-block',
-      padding:       '3px 9px',
-      borderRadius:  '999px',
-      fontSize:      '9px',
-      fontFamily:    'var(--font-heading)',
-      fontWeight:    600,
-      letterSpacing: '0.18em',
-      textTransform: 'uppercase',
-      color:         s.color,
-      border:        `1px solid ${s.border}`,
-      background:    s.bg,
-      flexShrink:    0,
+      display: 'inline-block', padding: '3px 9px', borderRadius: '999px',
+      fontSize: '9px', fontFamily: 'var(--font-heading)', fontWeight: 600,
+      letterSpacing: '0.18em', textTransform: 'uppercase',
+      color: s.color, border: `1px solid ${s.border}`, background: s.bg, flexShrink: 0,
     }}>
       {priority ? priority.toUpperCase() : 'MEDIUM'}
     </span>
   )
 }
 
-/** Reusable <select> styled to match the existing design */
 function PrioritySelect({ value, onChange, disabled }) {
   return (
-    <select
-      value={value}
-      onChange={e => onChange(e.target.value)}
-      disabled={disabled}
+    <select value={value} onChange={e => onChange(e.target.value)} disabled={disabled}
       aria-label="Priority"
       style={{
-        padding:       '14px 18px',
-        border:        '1px solid var(--border)',
-        borderRadius:  '12px',
-        background:    'rgba(3,11,24,0.6)',
-        color:         value ? PRIORITY_STYLE[value]?.color : 'var(--text-primary)',
-        fontFamily:    'var(--font-heading)',
-        fontSize:      '13px',
-        letterSpacing: '0.08em',
-        outline:       'none',
-        cursor:        disabled ? 'not-allowed' : 'pointer',
-        transition:    'border-color 0.3s',
-        width:         '100%',
-        maxWidth:      '200px',
-      }}
-    >
-      {PRIORITIES.map(p => (
-        <option key={p.value} value={p.value}>{p.label}</option>
-      ))}
+        padding: '14px 18px', border: '1px solid var(--border)', borderRadius: '12px',
+        background: 'rgba(3,11,24,0.6)', color: value ? PRIORITY_STYLE[value]?.color : 'var(--text-primary)',
+        fontFamily: 'var(--font-heading)', fontSize: '13px', letterSpacing: '0.08em',
+        outline: 'none', cursor: disabled ? 'not-allowed' : 'pointer',
+        transition: 'border-color 0.3s', width: '100%', maxWidth: '200px',
+      }}>
+      {PRIORITIES.map(p => <option key={p.value} value={p.value}>{p.label}</option>)}
     </select>
   )
 }
@@ -82,7 +61,6 @@ function useToast() {
     if (action.type === 'REMOVE') return state.filter(t => t.id !== action.id)
     return state
   }, [])
-
   const timers = useRef({})
 
   const addToast = useCallback((message, type = 'success') => {
@@ -106,33 +84,19 @@ function ToastContainer({ toasts }) {
   if (!toasts.length) return null
   return (
     <div style={{
-      position:      'fixed',
-      bottom:        '28px',
-      right:         '28px',
-      zIndex:        1000,
-      display:       'flex',
-      flexDirection: 'column',
-      gap:           '10px',
-      pointerEvents: 'none',
+      position: 'fixed', bottom: '28px', right: '28px', zIndex: 1000,
+      display: 'flex', flexDirection: 'column', gap: '10px', pointerEvents: 'none',
     }}>
       {toasts.map(t => (
         <div key={t.id} style={{
-          padding:        '13px 20px',
-          borderRadius:   '12px',
-          fontSize:       '13px',
-          fontFamily:     'var(--font-heading)',
-          letterSpacing:  '0.04em',
-          color:          '#f5f8ff',
-          background:     t.type === 'success'
+          padding: '13px 20px', borderRadius: '12px', fontSize: '13px',
+          fontFamily: 'var(--font-heading)', letterSpacing: '0.04em', color: '#f5f8ff',
+          background: t.type === 'success'
             ? 'linear-gradient(135deg,rgba(18,61,120,0.95),rgba(36,123,209,0.9))'
             : 'linear-gradient(135deg,rgba(120,30,30,0.95),rgba(200,60,60,0.88))',
-          border:         `1px solid ${t.type === 'success'
-            ? 'rgba(77,184,255,0.4)' : 'rgba(255,100,100,0.4)'}`,
-          boxShadow:      '0 8px 32px rgba(0,0,0,0.4)',
-          backdropFilter: 'blur(12px)',
-          animation:      'toast-in 0.3s cubic-bezier(0.16,1,0.3,1)',
-          maxWidth:       '340px',
-          pointerEvents:  'none',
+          border: `1px solid ${t.type === 'success' ? 'rgba(77,184,255,0.4)' : 'rgba(255,100,100,0.4)'}`,
+          boxShadow: '0 8px 32px rgba(0,0,0,0.4)', backdropFilter: 'blur(12px)',
+          animation: 'toast-in 0.3s cubic-bezier(0.16,1,0.3,1)', maxWidth: '340px', pointerEvents: 'none',
         }}>
           {t.type === 'success' ? '✓ ' : '✕ '}{t.message}
         </div>
@@ -148,81 +112,192 @@ function ToastContainer({ toasts }) {
 function ConfirmDialog({ task, onConfirm, onCancel, isDeleting }) {
   return (
     <div style={{
-      position:       'fixed',
-      inset:          0,
-      zIndex:         500,
-      display:        'flex',
-      alignItems:     'center',
-      justifyContent: 'center',
-      background:     'rgba(2,6,17,0.78)',
-      backdropFilter: 'blur(6px)',
+      position: 'fixed', inset: 0, zIndex: 500, display: 'flex',
+      alignItems: 'center', justifyContent: 'center',
+      background: 'rgba(2,6,17,0.78)', backdropFilter: 'blur(6px)',
     }}>
       <div style={{
-        background:   'linear-gradient(135deg,rgba(6,21,43,0.97),rgba(3,11,24,0.99))',
-        border:       '1px solid rgba(77,184,255,0.22)',
-        borderRadius: '20px',
-        padding:      '36px 40px',
-        maxWidth:     '420px',
-        width:        'calc(100% - 48px)',
-        boxShadow:    '0 32px 80px rgba(0,0,0,0.6)',
-        textAlign:    'center',
+        background: 'linear-gradient(135deg,rgba(6,21,43,0.97),rgba(3,11,24,0.99))',
+        border: '1px solid rgba(77,184,255,0.22)', borderRadius: '20px',
+        padding: '36px 40px', maxWidth: '420px', width: 'calc(100% - 48px)',
+        boxShadow: '0 32px 80px rgba(0,0,0,0.6)', textAlign: 'center',
       }}>
-        <p style={{
-          fontSize:      '9px',
-          fontFamily:    'var(--font-heading)',
-          letterSpacing: '0.24em',
-          textTransform: 'uppercase',
-          color:         'var(--blue-glow)',
-          marginBottom:  '14px',
-        }}>
+        <p style={{ fontSize: '9px', fontFamily: 'var(--font-heading)', letterSpacing: '0.24em',
+          textTransform: 'uppercase', color: 'var(--blue-glow)', marginBottom: '14px' }}>
           Confirm Deletion
         </p>
-        <p style={{
-          fontSize:      '17px',
-          fontFamily:    'var(--font-heading)',
-          color:         'var(--text-primary)',
-          fontWeight:    600,
-          marginBottom:  '10px',
-          letterSpacing: '-0.01em',
-        }}>
+        <p style={{ fontSize: '17px', fontFamily: 'var(--font-heading)', color: 'var(--text-primary)',
+          fontWeight: 600, marginBottom: '10px', letterSpacing: '-0.01em' }}>
           Delete this task?
         </p>
-        <p style={{
-          fontSize:     '13px',
-          color:        'var(--text-muted)',
-          marginBottom: '28px',
-          lineHeight:   1.6,
-        }}>
-          &ldquo;{task.title}&rdquo; will be permanently removed.
-          This cannot be undone.
+        <p style={{ fontSize: '13px', color: 'var(--text-muted)', marginBottom: '28px', lineHeight: 1.6 }}>
+          &ldquo;{task.title}&rdquo; will be permanently removed. This cannot be undone.
         </p>
-        <div style={{ display:'flex', gap:'12px', justifyContent:'center' }}>
-          <button
-            type="button"
-            className="btn-outline"
-            onClick={onCancel}
+        <div style={{ display: 'flex', gap: '12px', justifyContent: 'center' }}>
+          <button type="button" className="btn-outline" onClick={onCancel}
+            disabled={isDeleting} style={{ minWidth: '110px' }}>Cancel</button>
+          <button type="button" className="retry-button" onClick={onConfirm}
             disabled={isDeleting}
-            style={{ minWidth:'110px' }}
-          >
-            Cancel
-          </button>
-          <button
-            type="button"
-            className="retry-button"
-            onClick={onConfirm}
-            disabled={isDeleting}
-            style={{
-              minWidth:    '110px',
-              background:  'linear-gradient(135deg,#7c1f1f,#b53030)',
-              borderColor: 'rgba(255,100,100,0.3)',
-              opacity:     isDeleting ? 0.7 : 1,
-            }}
-          >
+            style={{ minWidth: '110px', background: 'linear-gradient(135deg,#7c1f1f,#b53030)',
+              borderColor: 'rgba(255,100,100,0.3)', opacity: isDeleting ? 0.7 : 1 }}>
             {isDeleting ? 'Deleting…' : 'Delete'}
           </button>
         </div>
       </div>
     </div>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// AUTH GATE  — Login / Register form
+// ─────────────────────────────────────────────────────────────────────────────
+
+/**
+ * AuthGate renders the login/register UI.
+ * On success it calls onAuthenticated() which sets the token in the parent.
+ */
+function AuthGate({ onAuthenticated, addToast }) {
+  const [mode,     setMode]     = useState('login')   // 'login' | 'register'
+  const [email,    setEmail]    = useState('')
+  const [password, setPassword] = useState('')
+  const [loading,  setLoading]  = useState(false)
+  const [formError, setFormError] = useState(null)
+
+  const handleSubmit = async (e) => {
+    e.preventDefault()
+    setFormError(null)
+
+    if (!email.trim() || !password.trim()) {
+      setFormError('Email and password are required.')
+      return
+    }
+
+    setLoading(true)
+    try {
+      if (mode === 'register') {
+        // 1. Register
+        await register({ email: email.trim(), password })
+        addToast('Account created! You can now log in.', 'success')
+        setMode('login')
+        setPassword('')
+      } else {
+        // 2. Login — get token, persist it, notify parent
+        const { token } = await login({ email: email.trim(), password })
+        saveToken(token)
+        addToast('Logged in successfully.', 'success')
+        onAuthenticated()
+      }
+    } catch (err) {
+      setFormError(err.message)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  return (
+    <section className="section">
+      <div className="container">
+        <div style={{ maxWidth: '480px', margin: '0 auto' }}>
+
+          {/* Header */}
+          <div className="section-header" style={{ textAlign: 'center' }}>
+            <span className="section-label">
+              {mode === 'login' ? 'Welcome Back' : 'Create Account'}
+            </span>
+            <h2 className="section-title" style={{ textAlign: 'center' }}>
+              {mode === 'login' ? <>Sign <em>In</em></> : <>Register</>}
+            </h2>
+            <p className="repos-intro" style={{ textAlign: 'center' }}>
+              {mode === 'login'
+                ? 'Enter your credentials to access the Task Manager.'
+                : 'Create an account to start managing tasks.'}
+            </p>
+          </div>
+
+          {/* Form */}
+          <form
+            onSubmit={handleSubmit}
+            style={{ display: 'flex', flexDirection: 'column', gap: '14px' }}
+          >
+            {/* Error banner */}
+            {formError && (
+              <div style={{
+                padding: '12px 16px', borderRadius: '10px', fontSize: '13px',
+                color: '#f47f7f', background: 'rgba(244,127,127,0.08)',
+                border: '1px solid rgba(244,127,127,0.2)',
+              }}>
+                {formError}
+              </div>
+            )}
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '9px', fontFamily: 'var(--font-heading)',
+                letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                Email
+              </label>
+              <input
+                type="email"
+                className="contact-field"
+                placeholder="student@example.com"
+                value={email}
+                onChange={e => setEmail(e.target.value)}
+                disabled={loading}
+                autoComplete="email"
+                required
+              />
+            </div>
+
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '6px' }}>
+              <label style={{ fontSize: '9px', fontFamily: 'var(--font-heading)',
+                letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
+                Password
+              </label>
+              <input
+                type="password"
+                className="contact-field"
+                placeholder={mode === 'register' ? 'Min. 6 characters' : 'Your password'}
+                value={password}
+                onChange={e => setPassword(e.target.value)}
+                disabled={loading}
+                autoComplete={mode === 'register' ? 'new-password' : 'current-password'}
+                required
+              />
+            </div>
+
+            <button
+              type="submit"
+              className="btn-primary"
+              disabled={loading}
+              style={{ marginTop: '8px', opacity: loading ? 0.7 : 1, justifyContent: 'center' }}
+            >
+              {loading
+                ? (mode === 'login' ? 'Signing in…' : 'Creating account…')
+                : (mode === 'login' ? 'Sign In' : 'Create Account')}
+            </button>
+          </form>
+
+          {/* Toggle mode */}
+          <p style={{
+            textAlign: 'center', marginTop: '24px', fontSize: '13px',
+            color: 'var(--text-muted)',
+          }}>
+            {mode === 'login' ? "Don't have an account? " : 'Already have an account? '}
+            <button
+              type="button"
+              onClick={() => { setMode(mode === 'login' ? 'register' : 'login'); setFormError(null) }}
+              style={{
+                background: 'none', border: 'none', padding: 0,
+                color: 'var(--blue-glow)', cursor: 'pointer', fontSize: '13px',
+                fontFamily: 'var(--font-body)', textDecoration: 'underline',
+              }}
+            >
+              {mode === 'login' ? 'Register' : 'Sign in'}
+            </button>
+          </p>
+
+        </div>
+      </div>
+    </section>
   )
 }
 
@@ -243,43 +318,50 @@ function tasksReducer(state, action) {
 }
 
 // ─────────────────────────────────────────────────────────────────────────────
-// MAIN COMPONENT
+// TASK MANAGER  — the full Practical 6 + priority UI (shown when authenticated)
 // ─────────────────────────────────────────────────────────────────────────────
 
-export default function TodoPage() {
-  // ── tasks ──────────────────────────────────────────────────────────────────
+function TaskManager({ currentUser, onLogout, addToast }) {
   const [tasks,   dispatch]     = useReducer(tasksReducer, [])
 
-  // ── add-form ───────────────────────────────────────────────────────────────
+  // add-form
   const [formTitle,    setFormTitle]    = useState('')
   const [formDesc,     setFormDesc]     = useState('')
-  const [formPriority, setFormPriority] = useState('medium')   // ← new
+  const [formPriority, setFormPriority] = useState('medium')
 
-  // ── edit ───────────────────────────────────────────────────────────────────
+  // edit
   const [editId,       setEditId]       = useState(null)
   const [editTitle,    setEditTitle]    = useState('')
   const [editDesc,     setEditDesc]     = useState('')
-  const [editPriority, setEditPriority] = useState('medium')   // ← new
+  const [editPriority, setEditPriority] = useState('medium')
 
-  // ── filters ────────────────────────────────────────────────────────────────
-  const [filterStatus,   setFilterStatus]   = useState('all')   // all | active | completed
-  const [filterPriority, setFilterPriority] = useState('all')   // all | high | medium | low  ← new
+  // filters
+  const [filterStatus,   setFilterStatus]   = useState('all')
+  const [filterPriority, setFilterPriority] = useState('all')
 
-  // ── loading flags ──────────────────────────────────────────────────────────
+  // loading flags
   const [loadingInit, setLoadingInit] = useState(true)
   const [loadingAdd,  setLoadingAdd]  = useState(false)
   const [savingId,    setSavingId]    = useState(null)
   const [togglingId,  setTogglingId]  = useState(null)
   const [deletingId,  setDeletingId]  = useState(null)
 
-  // ── confirm dialog ─────────────────────────────────────────────────────────
   const [confirmTask, setConfirmTask] = useState(null)
+  const [pageError,   setPageError]   = useState(null)
 
-  // ── page-level error ───────────────────────────────────────────────────────
-  const [pageError, setPageError] = useState(null)
+  // ── 401 handler — called whenever any task API call returns 401 ─────────────
+  // Clears the token and triggers logout in the parent (TodoPage)
+  const handle401 = useCallback(() => {
+    removeToken()
+    addToast('Session expired. Please log in again.', 'error')
+    onLogout()
+  }, [addToast, onLogout])
 
-  // ── toasts ─────────────────────────────────────────────────────────────────
-  const { toasts, addToast } = useToast()
+  // ── helper: if error is 401, call handle401 and return true ────────────────
+  const check401 = useCallback((err) => {
+    if (err?.status === 401) { handle401(); return true }
+    return false
+  }, [handle401])
 
   // ── LOAD tasks ─────────────────────────────────────────────────────────────
   const loadTasks = useCallback(async () => {
@@ -289,12 +371,13 @@ export default function TodoPage() {
       const data = await getTasks()
       dispatch({ type: 'SET', tasks: data })
     } catch (err) {
+      if (check401(err)) return
       setPageError(err.message)
       addToast(err.message, 'error')
     } finally {
       setLoadingInit(false)
     }
-  }, [addToast])
+  }, [addToast, check401])
 
   useEffect(() => { loadTasks() }, [loadTasks])
 
@@ -303,33 +386,23 @@ export default function TodoPage() {
     e.preventDefault()
     const title    = formTitle.trim()
     const desc     = formDesc.trim()
-    const priority = formPriority          // already lowercase: 'high'|'medium'|'low'
+    const priority = formPriority
 
-    if (!title) {
-      addToast('Please enter a task title.', 'error')
-      return
-    }
+    if (!title) { addToast('Please enter a task title.', 'error'); return }
 
-    // 1. Optimistic placeholder
     const tmpTask = { _tmp: true, id: '__tmp__', title, description: desc, completed: false, priority }
     dispatch({ type: 'ADD', task: tmpTask })
-    setFormTitle('')
-    setFormDesc('')
-    setFormPriority('medium')              // reset dropdown to default
+    setFormTitle(''); setFormDesc(''); setFormPriority('medium')
     setLoadingAdd(true)
 
     try {
-      // 2. Real POST — sends title, description, AND priority to backend
       const created = await createTask({ title, description: desc, priority })
-      // 3. Swap placeholder → real MongoDB document
       dispatch({ type: 'REPLACE_TMP', task: created })
       addToast('Task created successfully.', 'success')
     } catch (err) {
-      // 4. Failed — remove placeholder, restore form
       dispatch({ type: 'REMOVE_TMP' })
-      setFormTitle(title)
-      setFormDesc(desc)
-      setFormPriority(priority)
+      setFormTitle(title); setFormDesc(desc); setFormPriority(priority)
+      if (check401(err)) return
       addToast(err.message, 'error')
     } finally {
       setLoadingAdd(false)
@@ -346,59 +419,41 @@ export default function TodoPage() {
       dispatch({ type: 'UPDATE', task: updated })
       addToast(updated.completed ? 'Task marked complete.' : 'Task marked active.', 'success')
     } catch (err) {
-      dispatch({ type: 'UPDATE', task })    // rollback
-      addToast(err.message, 'error')
+      dispatch({ type: 'UPDATE', task })
+      if (!check401(err)) addToast(err.message, 'error')
     } finally {
       setTogglingId(null)
     }
   }
 
-  // ── START / CANCEL edit ────────────────────────────────────────────────────
+  // ── EDIT ───────────────────────────────────────────────────────────────────
   const handleStartEdit = (task) => {
-    setEditId(task.id)
-    setEditTitle(task.title)
-    setEditDesc(task.description || '')
-    setEditPriority(task.priority || 'medium')   // ← pre-fill priority
+    setEditId(task.id); setEditTitle(task.title)
+    setEditDesc(task.description || ''); setEditPriority(task.priority || 'medium')
   }
-
   const handleCancelEdit = () => {
-    setEditId(null)
-    setEditTitle('')
-    setEditDesc('')
-    setEditPriority('medium')
+    setEditId(null); setEditTitle(''); setEditDesc(''); setEditPriority('medium')
   }
 
-  // ── SAVE edit ──────────────────────────────────────────────────────────────
   const handleSaveEdit = async (taskId) => {
     const title = editTitle.trim()
-    if (!title) {
-      addToast('Task title cannot be empty.', 'error')
-      return
-    }
+    if (!title) { addToast('Task title cannot be empty.', 'error'); return }
     setSavingId(taskId)
     try {
-      // Sends title, description, AND priority — backend persists all three
-      const updated = await updateTask(taskId, {
-        title,
-        description: editDesc.trim(),
-        priority:    editPriority,          // ← included in PUT body
-      })
+      const updated = await updateTask(taskId, { title, description: editDesc.trim(), priority: editPriority })
       dispatch({ type: 'UPDATE', task: updated })
-      setEditId(null)
-      setEditTitle('')
-      setEditDesc('')
-      setEditPriority('medium')
+      setEditId(null); setEditTitle(''); setEditDesc(''); setEditPriority('medium')
       addToast('Task updated successfully.', 'success')
     } catch (err) {
-      addToast(err.message, 'error')
+      if (!check401(err)) addToast(err.message, 'error')
     } finally {
       setSavingId(null)
     }
   }
 
   // ── DELETE ─────────────────────────────────────────────────────────────────
-  const handleDeleteRequest = (task)   => setConfirmTask(task)
-  const handleDeleteCancel  = ()       => { if (!deletingId) setConfirmTask(null) }
+  const handleDeleteRequest = (task) => setConfirmTask(task)
+  const handleDeleteCancel  = ()     => { if (!deletingId) setConfirmTask(null) }
 
   const handleDeleteConfirm = async () => {
     const task = confirmTask
@@ -409,23 +464,20 @@ export default function TodoPage() {
       setConfirmTask(null)
       addToast('Task deleted.', 'success')
     } catch (err) {
-      addToast(err.message, 'error')
+      if (!check401(err)) addToast(err.message, 'error')
     } finally {
       setDeletingId(null)
     }
   }
 
-  // ── FILTERED LIST ──────────────────────────────────────────────────────────
+  // ── filtered list ──────────────────────────────────────────────────────────
   const filtered = tasks.filter(t => {
-    // Status filter
-    if (filterStatus === 'completed' && !t.completed)  return false
-    if (filterStatus === 'active'    &&  t.completed)  return false
-    // Priority filter — uses value returned from MongoDB
+    if (filterStatus   === 'completed' && !t.completed) return false
+    if (filterStatus   === 'active'    &&  t.completed) return false
     if (filterPriority !== 'all' && t.priority !== filterPriority) return false
     return true
   })
 
-  // ── RENDER: initial load ───────────────────────────────────────────────────
   if (loadingInit) {
     return (
       <section className="section">
@@ -433,175 +485,129 @@ export default function TodoPage() {
           <div className="spinner-wrapper" role="status" aria-live="polite">
             <div className="spinner" aria-label="Loading tasks…" />
           </div>
-          <p style={{ textAlign:'center', color:'var(--text-muted)', fontSize:'13px', marginTop:'16px' }}>
-            Connecting to MongoDB…
+          <p style={{ textAlign: 'center', color: 'var(--text-muted)', fontSize: '13px', marginTop: '16px' }}>
+            Loading tasks from MongoDB…
           </p>
         </div>
-        <ToastContainer toasts={toasts} />
       </section>
     )
   }
 
-  // ── RENDER: GET failed entirely ────────────────────────────────────────────
   if (pageError && tasks.length === 0) {
     return (
       <section className="section">
         <div className="container">
-          <div className="error-card" style={{ textAlign:'center' }}>
+          <div className="error-card" style={{ textAlign: 'center' }}>
             <p className="error-title">Unable to load tasks</p>
             <p className="error-message">{pageError}</p>
-            <button type="button" className="retry-button" onClick={loadTasks} style={{ marginTop:'8px' }}>
+            <button type="button" className="retry-button" onClick={loadTasks} style={{ marginTop: '8px' }}>
               Retry
             </button>
           </div>
         </div>
-        <ToastContainer toasts={toasts} />
       </section>
     )
   }
 
-  // ── RENDER: main ──────────────────────────────────────────────────────────
   return (
     <>
       {confirmTask && (
-        <ConfirmDialog
-          task={confirmTask}
-          onConfirm={handleDeleteConfirm}
-          onCancel={handleDeleteCancel}
-          isDeleting={deletingId === confirmTask.id}
-        />
+        <ConfirmDialog task={confirmTask} onConfirm={handleDeleteConfirm}
+          onCancel={handleDeleteCancel} isDeleting={deletingId === confirmTask.id} />
       )}
 
       <section className="section">
         <div className="container">
 
-          {/* Header */}
-          <div className="section-header">
-            <span className="section-label">Task Manager</span>
-            <h2 className="section-title">To-Do <em>List</em></h2>
-            <p className="repos-intro">
-              Full-stack task management — data persisted in MongoDB Atlas.
-            </p>
+          {/* Header + user info + logout */}
+          <div className="section-header" style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '16px' }}>
+            <div>
+              <span className="section-label">Task Manager</span>
+              <h2 className="section-title">To-Do <em>List</em></h2>
+              <p className="repos-intro">Full-stack task management — data persisted in MongoDB Atlas.</p>
+            </div>
+            {/* Current user + logout */}
+            <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-end', gap: '8px', paddingTop: '8px' }}>
+              {currentUser && (
+                <span style={{ fontSize: '11px', color: 'var(--text-muted)',
+                  fontFamily: 'var(--font-heading)', letterSpacing: '0.06em' }}>
+                  {currentUser.email}
+                </span>
+              )}
+              <button type="button" className="btn-outline"
+                onClick={onLogout}
+                style={{ padding: '8px 18px', fontSize: '10px' }}>
+                Sign Out
+              </button>
+            </div>
           </div>
 
-          {/* Non-fatal GET error banner */}
           {pageError && tasks.length > 0 && (
-            <div className="error-card todo-error-card" style={{ marginBottom:'24px' }}>
+            <div className="error-card todo-error-card" style={{ marginBottom: '24px' }}>
               <p className="error-message">{pageError}</p>
             </div>
           )}
 
-          {/* ── ADD TASK FORM ────────────────────────────────── */}
-          <form
-            className="todo-form"
-            onSubmit={handleAddTask}
-            style={{ flexDirection:'column', alignItems:'stretch', maxWidth:'640px' }}
-          >
-            <input
-              type="text"
-              className="repos-search"
-              style={{ maxWidth:'100%' }}
-              placeholder="Task title…"
-              value={formTitle}
-              onChange={e => setFormTitle(e.target.value)}
-              disabled={loadingAdd}
-              aria-label="New task title"
-            />
-            <textarea
-              className="repos-search"
-              style={{ maxWidth:'100%', resize:'vertical', minHeight:'80px', lineHeight:'1.6' }}
-              placeholder="Description (optional)…"
-              value={formDesc}
-              onChange={e => setFormDesc(e.target.value)}
-              disabled={loadingAdd}
-              aria-label="New task description"
-            />
-
-            {/* Priority selector — new */}
-            <div style={{ display:'flex', alignItems:'center', gap:'12px', flexWrap:'wrap' }}>
-              <label style={{
-                fontSize:'9px', fontFamily:'var(--font-heading)',
-                letterSpacing:'0.18em', textTransform:'uppercase',
-                color:'var(--text-muted)', whiteSpace:'nowrap',
-              }}>
+          {/* ADD TASK FORM */}
+          <form className="todo-form" onSubmit={handleAddTask}
+            style={{ flexDirection: 'column', alignItems: 'stretch', maxWidth: '640px' }}>
+            <input type="text" className="repos-search" style={{ maxWidth: '100%' }}
+              placeholder="Task title…" value={formTitle}
+              onChange={e => setFormTitle(e.target.value)} disabled={loadingAdd} aria-label="New task title" />
+            <textarea className="repos-search"
+              style={{ maxWidth: '100%', resize: 'vertical', minHeight: '80px', lineHeight: '1.6' }}
+              placeholder="Description (optional)…" value={formDesc}
+              onChange={e => setFormDesc(e.target.value)} disabled={loadingAdd} aria-label="New task description" />
+            <div style={{ display: 'flex', alignItems: 'center', gap: '12px', flexWrap: 'wrap' }}>
+              <label style={{ fontSize: '9px', fontFamily: 'var(--font-heading)',
+                letterSpacing: '0.18em', textTransform: 'uppercase', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>
                 Priority
               </label>
-              <PrioritySelect
-                value={formPriority}
-                onChange={setFormPriority}
-                disabled={loadingAdd}
-              />
+              <PrioritySelect value={formPriority} onChange={setFormPriority} disabled={loadingAdd} />
             </div>
-
-            <button
-              type="submit"
-              className="retry-button"
-              disabled={loadingAdd}
-              style={{ alignSelf:'flex-start', opacity: loadingAdd ? 0.7 : 1 }}
-            >
+            <button type="submit" className="retry-button" disabled={loadingAdd}
+              style={{ alignSelf: 'flex-start', opacity: loadingAdd ? 0.7 : 1 }}>
               {loadingAdd ? 'Adding…' : 'Add Task'}
             </button>
           </form>
 
-          {/* ── STATUS FILTER ────────────────────────────────── */}
-          <div style={{ marginBottom:'8px' }}>
-            <p style={{
-              fontSize:'9px', fontFamily:'var(--font-heading)',
-              letterSpacing:'0.18em', textTransform:'uppercase',
-              color:'var(--text-muted)', marginBottom:'8px',
-            }}>
-              Status
-            </p>
+          {/* STATUS FILTER */}
+          <div style={{ marginBottom: '8px' }}>
+            <p style={{ fontSize: '9px', fontFamily: 'var(--font-heading)', letterSpacing: '0.18em',
+              textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>Status</p>
             <div className="todo-filters">
               {['all', 'active', 'completed'].map(f => (
-                <button
-                  key={f}
-                  type="button"
+                <button key={f} type="button"
                   className={`todo-filter-button${filterStatus === f ? ' active' : ''}`}
-                  onClick={() => setFilterStatus(f)}
-                >
+                  onClick={() => setFilterStatus(f)}>
                   {f === 'all' ? 'All Tasks' : f.charAt(0).toUpperCase() + f.slice(1)}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* ── PRIORITY FILTER — new ─────────────────────────── */}
-          <div style={{ marginBottom:'32px' }}>
-            <p style={{
-              fontSize:'9px', fontFamily:'var(--font-heading)',
-              letterSpacing:'0.18em', textTransform:'uppercase',
-              color:'var(--text-muted)', marginBottom:'8px',
-            }}>
-              Priority
-            </p>
+          {/* PRIORITY FILTER */}
+          <div style={{ marginBottom: '32px' }}>
+            <p style={{ fontSize: '9px', fontFamily: 'var(--font-heading)', letterSpacing: '0.18em',
+              textTransform: 'uppercase', color: 'var(--text-muted)', marginBottom: '8px' }}>Priority</p>
             <div className="todo-filters">
-              {[
-                { value: 'all',    label: 'All' },
-                { value: 'high',   label: 'High' },
-                { value: 'medium', label: 'Medium' },
-                { value: 'low',    label: 'Low' },
-              ].map(f => (
-                <button
-                  key={f.value}
-                  type="button"
+              {[{ value: 'all', label: 'All' }, ...PRIORITIES].map(f => (
+                <button key={f.value} type="button"
                   className={`todo-filter-button${filterPriority === f.value ? ' active' : ''}`}
                   onClick={() => setFilterPriority(f.value)}
                   style={filterPriority === f.value && f.value !== 'all'
                     ? { color: PRIORITY_STYLE[f.value]?.color, borderColor: PRIORITY_STYLE[f.value]?.border }
-                    : {}
-                  }
-                >
+                    : {}}>
                   {f.label}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* ── TASK LIST ────────────────────────────────────── */}
+          {/* TASK LIST */}
           <div className="todo-list">
             {filtered.length === 0 && (
-              <p style={{ color:'var(--text-muted)', fontSize:'15px' }}>
+              <p style={{ color: 'var(--text-muted)', fontSize: '15px' }}>
                 No {filterStatus !== 'all' ? filterStatus : ''} {filterPriority !== 'all' ? filterPriority + '-priority' : ''} tasks yet.
               </p>
             )}
@@ -614,115 +620,63 @@ export default function TodoPage() {
               const isBusy     = isSaving || isToggling || isDeleting
 
               return (
-                <article
-                  key={task.id}
-                  className="repo-card todo-card"
+                <article key={task.id} className="repo-card todo-card"
                   style={{
-                    opacity:    task._tmp ? 0.6 : 1,
-                    transition: 'opacity 0.3s',
-                    // Subtle left border accent based on priority
+                    opacity: task._tmp ? 0.6 : 1, transition: 'opacity 0.3s',
                     borderLeft: `3px solid ${PRIORITY_STYLE[task.priority]?.border || PRIORITY_STYLE.medium.border}`,
-                  }}
-                >
+                  }}>
                   <div className="todo-card-main">
-
                     {isEditing ? (
-                      /* ── EDIT MODE ──────────────────────── */
-                      <div style={{ display:'flex', flexDirection:'column', gap:'8px', width:'100%' }}>
-                        <input
-                          type="text"
-                          className="todo-edit-input"
-                          value={editTitle}
-                          onChange={e => setEditTitle(e.target.value)}
-                          disabled={isSaving}
-                          aria-label="Edit task title"
-                        />
-                        <textarea
-                          className="todo-edit-input"
-                          style={{ resize:'vertical', minHeight:'64px', lineHeight:'1.6' }}
-                          placeholder="Description (optional)…"
-                          value={editDesc}
-                          onChange={e => setEditDesc(e.target.value)}
-                          disabled={isSaving}
-                          aria-label="Edit task description"
-                        />
-                        {/* Priority edit — new */}
-                        <div style={{ display:'flex', alignItems:'center', gap:'10px' }}>
-                          <span style={{
-                            fontSize:'9px', fontFamily:'var(--font-heading)',
-                            letterSpacing:'0.18em', textTransform:'uppercase',
-                            color:'var(--text-muted)', whiteSpace:'nowrap',
-                          }}>
-                            Priority
-                          </span>
-                          <PrioritySelect
-                            value={editPriority}
-                            onChange={setEditPriority}
-                            disabled={isSaving}
-                          />
+                      <div style={{ display: 'flex', flexDirection: 'column', gap: '8px', width: '100%' }}>
+                        <input type="text" className="todo-edit-input" value={editTitle}
+                          onChange={e => setEditTitle(e.target.value)} disabled={isSaving} aria-label="Edit task title" />
+                        <textarea className="todo-edit-input"
+                          style={{ resize: 'vertical', minHeight: '64px', lineHeight: '1.6' }}
+                          placeholder="Description (optional)…" value={editDesc}
+                          onChange={e => setEditDesc(e.target.value)} disabled={isSaving} aria-label="Edit task description" />
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '10px' }}>
+                          <span style={{ fontSize: '9px', fontFamily: 'var(--font-heading)', letterSpacing: '0.18em',
+                            textTransform: 'uppercase', color: 'var(--text-muted)', whiteSpace: 'nowrap' }}>Priority</span>
+                          <PrioritySelect value={editPriority} onChange={setEditPriority} disabled={isSaving} />
                         </div>
-                        {isSaving && (
-                          <p style={{ fontSize:'11px', color:'var(--blue-glow)', fontFamily:'var(--font-heading)', letterSpacing:'0.1em' }}>
-                            Saving…
-                          </p>
-                        )}
+                        {isSaving && <p style={{ fontSize: '11px', color: 'var(--blue-glow)',
+                          fontFamily: 'var(--font-heading)', letterSpacing: '0.1em' }}>Saving…</p>}
                       </div>
                     ) : (
-                      /* ── VIEW MODE ──────────────────────── */
-                      <label className="todo-check" style={{ opacity: isToggling ? 0.6 : 1, alignItems:'flex-start' }}>
-                        <input
-                          type="checkbox"
-                          checked={task.completed}
-                          onChange={() => handleToggle(task)}
-                          disabled={isBusy || !!task._tmp}
-                          style={{ marginTop:'3px' }}
-                        />
-                        <div style={{ minWidth:0, flex:1 }}>
-                          {/* Title row with priority badge */}
-                          <div style={{ display:'flex', alignItems:'center', gap:'10px', flexWrap:'wrap' }}>
+                      <label className="todo-check" style={{ opacity: isToggling ? 0.6 : 1, alignItems: 'flex-start' }}>
+                        <input type="checkbox" checked={task.completed}
+                          onChange={() => handleToggle(task)} disabled={isBusy || !!task._tmp}
+                          style={{ marginTop: '3px' }} />
+                        <div style={{ minWidth: 0, flex: 1 }}>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '10px', flexWrap: 'wrap' }}>
                             <span className={`todo-title${task.completed ? ' completed' : ''}`}>
                               {task.title}
-                              {task._tmp && (
-                                <span style={{ fontSize:'10px', color:'var(--text-muted)', marginLeft:'8px' }}>
-                                  (saving…)
-                                </span>
-                              )}
+                              {task._tmp && <span style={{ fontSize: '10px', color: 'var(--text-muted)', marginLeft: '8px' }}>(saving…)</span>}
                             </span>
-                            {/* Priority badge — comes from MongoDB via API response */}
                             <PriorityBadge priority={task.priority} />
                           </div>
-                          {/* Description */}
                           {task.description && task.description.trim() !== '' && (
-                            <p style={{
-                              fontSize:'12px', color:'var(--text-muted)',
-                              marginTop:'4px', lineHeight:1.5,
-                              whiteSpace:'pre-wrap', wordBreak:'break-word',
-                            }}>
+                            <p style={{ fontSize: '12px', color: 'var(--text-muted)', marginTop: '4px',
+                              lineHeight: 1.5, whiteSpace: 'pre-wrap', wordBreak: 'break-word' }}>
                               {task.description}
                             </p>
                           )}
                         </div>
                       </label>
                     )}
-
                   </div>
 
-                  {/* ACTION BUTTONS */}
                   <div className="todo-actions">
                     {isEditing ? (
                       <>
-                        <button type="button" className="todo-save"   onClick={() => handleSaveEdit(task.id)} disabled={isSaving}>
+                        <button type="button" className="todo-save" onClick={() => handleSaveEdit(task.id)} disabled={isSaving}>
                           {isSaving ? 'Saving…' : 'Save'}
                         </button>
-                        <button type="button" className="todo-cancel" onClick={handleCancelEdit} disabled={isSaving}>
-                          Cancel
-                        </button>
+                        <button type="button" className="todo-cancel" onClick={handleCancelEdit} disabled={isSaving}>Cancel</button>
                       </>
                     ) : (
                       <>
-                        <button type="button" className="todo-edit"   onClick={() => handleStartEdit(task)} disabled={isBusy || !!task._tmp}>
-                          Edit
-                        </button>
+                        <button type="button" className="todo-edit" onClick={() => handleStartEdit(task)} disabled={isBusy || !!task._tmp}>Edit</button>
                         <button type="button" className="todo-delete" onClick={() => handleDeleteRequest(task)} disabled={isBusy || !!task._tmp}>
                           {isDeleting ? 'Deleting…' : 'Delete'}
                         </button>
@@ -736,6 +690,52 @@ export default function TodoPage() {
 
         </div>
       </section>
+    </>
+  )
+}
+
+// ─────────────────────────────────────────────────────────────────────────────
+// TODOPAGE  — top-level auth orchestrator
+// ─────────────────────────────────────────────────────────────────────────────
+
+export default function TodoPage() {
+  const { toasts, addToast } = useToast()
+
+  // isAuthed starts true if a token already exists in sessionStorage
+  // (so a page refresh within the same session keeps the user logged in)
+  const [isAuthed,     setIsAuthed]     = useState(() => !!getToken())
+  const [currentUser,  setCurrentUser]  = useState(null)
+
+  // After auth state becomes true, fetch /me to get the user's email
+  useEffect(() => {
+    if (!isAuthed) { setCurrentUser(null); return }
+    getMe()
+      .then(user => setCurrentUser(user))
+      .catch(err => {
+        // If /me fails with 401, the token is bad — force logout
+        if (err?.status === 401) {
+          removeToken()
+          setIsAuthed(false)
+        }
+      })
+  }, [isAuthed])
+
+  const handleAuthenticated = () => setIsAuthed(true)
+
+  // Logout: remove token, clear state
+  const handleLogout = useCallback(() => {
+    removeToken()
+    setIsAuthed(false)
+    setCurrentUser(null)
+    addToast('You have been signed out.', 'success')
+  }, [addToast])
+
+  return (
+    <>
+      {isAuthed
+        ? <TaskManager currentUser={currentUser} onLogout={handleLogout} addToast={addToast} />
+        : <AuthGate onAuthenticated={handleAuthenticated} addToast={addToast} />
+      }
 
       <ToastContainer toasts={toasts} />
 
