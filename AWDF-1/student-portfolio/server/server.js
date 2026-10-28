@@ -18,6 +18,12 @@ const { validateCreateTask,
         validateRegister,
         validateLogin }         = require('./middleware/validate')
 
+// ── Practical 10: EventEmitter background processing ─────────────────────────
+// taskListeners is imported first so all three listeners (task-created,
+// task-deleted, error) are registered before any event can be emitted.
+require('./taskListeners')
+const { taskEmitter, TASK_CREATED, TASK_DELETED } = require('./taskEvents')
+
 const app  = express()
 const PORT = process.env.PORT || 5000
 
@@ -287,7 +293,20 @@ app.post('/tasks', authenticate, validateCreateTask, async (req, res, next) => {
     cache.del(CACHE_KEY.allTasks)
     console.log(`[Cache] INVALIDATED ${CACHE_KEY.allTasks} after POST /tasks`)
 
+    // ── Send response BEFORE emitting — response latency is unaffected ────────
     res.status(201).json(task)
+
+    // ── Practical 10: emit task-created event (fire-and-forget) ──────────────
+    // Payload is built from the saved document and the authenticated user.
+    // req.user is set by the authenticate middleware (contains { id }).
+    taskEmitter.emit(TASK_CREATED, {
+      id:        task.id,
+      title:     task.title,
+      owner:     req.user.id,
+      priority:  task.priority,
+      completed: task.completed,
+      timestamp: new Date().toISOString(),
+    })
   } catch (err) {
     if (err.name === 'ValidationError') {
       return res.status(400).json(formatValidationError(err))
@@ -361,7 +380,16 @@ app.delete('/tasks/:id', authenticate, async (req, res, next) => {
     cache.del(CACHE_KEY.task(id))
     console.log(`[Cache] INVALIDATED ${CACHE_KEY.allTasks} + ${CACHE_KEY.task(id)} after DELETE /tasks/${id}`)
 
+    // ── Send response BEFORE emitting — response latency is unaffected ────────
     res.status(200).json({ message: 'Task deleted successfully' })
+
+    // ── Practical 10: emit task-deleted event (fire-and-forget) ──────────────
+    taskEmitter.emit(TASK_DELETED, {
+      id:        task.id,
+      title:     task.title,
+      owner:     req.user.id,
+      timestamp: new Date().toISOString(),
+    })
   } catch (err) {
     next(err)
   }
@@ -404,6 +432,7 @@ mongoose
       console.log(`[Server]  Running on http://localhost:${PORT}`)
       console.log(`[Auth]    JWT authentication is active`)
       console.log(`[Cache]   node-cache active — TTL=60s  debug: GET /debug/cache-stats`)
+      console.log(`[Events]  EventEmitter listeners registered (task-created, task-deleted, error)`)
     })
   })
   .catch(err => {
