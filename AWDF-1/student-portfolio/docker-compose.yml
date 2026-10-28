@@ -1,0 +1,80 @@
+# docker-compose.yml — Practical 11: Containerized Full-Stack Task Manager
+#
+# Three services:
+#   taskmgr-mongodb   — MongoDB 7 with a persistent named volume
+#   taskmgr-backend   — Express/Node.js API (Practicals 5-10)
+#   taskmgr-frontend  — React/Vite SPA served by Nginx
+#
+# All services communicate over the private bridge network "app-network".
+# Only the ports the end-user needs (5000 and 5173) are published to the host.
+
+services:
+
+  # ── MongoDB ──────────────────────────────────────────────────────────────────
+  taskmgr-mongodb:
+    image: mongo:7
+    container_name: taskmgr-mongodb
+    restart: unless-stopped
+    environment:
+      # These credentials create the root admin user on first start.
+      # Change them before any deployment beyond a local development machine.
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS:-changeme}
+      MONGO_INITDB_DATABASE: awdf_tasks
+    volumes:
+      # Named volume keeps data between container restarts and rebuilds.
+      - mongo-data:/data/db
+    networks:
+      - app-network
+    # MongoDB is NOT published to the host — only the backend needs it.
+    # Exposing 27017 to the host is a security risk in any shared environment.
+
+  # ── Backend ───────────────────────────────────────────────────────────────────
+  taskmgr-backend:
+    build:
+      context: ./server
+      dockerfile: Dockerfile
+    container_name: taskmgr-backend
+    restart: unless-stopped
+    depends_on:
+      - taskmgr-mongodb
+    environment:
+      # Inside Docker, the MongoDB hostname is the Compose service name.
+      # The URI uses the root credentials created above.
+      # authSource=admin is required when connecting with the root user.
+      MONGO_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS:-changeme}@taskmgr-mongodb:27017/awdf_tasks?authSource=admin
+      PORT: 5000
+      # JWT_SECRET MUST be overridden in a .env file at the project root.
+      # Never commit the real value. See .env.example for the variable name.
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in the root .env file}
+    ports:
+      - "5000:5000"
+    networks:
+      - app-network
+
+  # ── Frontend ──────────────────────────────────────────────────────────────────
+  taskmgr-frontend:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: taskmgr-frontend
+    restart: unless-stopped
+    depends_on:
+      - taskmgr-backend
+    ports:
+      # Map Nginx port 80 inside the container to port 5173 on the host so
+      # the existing URL http://localhost:5173 continues to work.
+      - "5173:80"
+    networks:
+      - app-network
+
+# ── Named volume ──────────────────────────────────────────────────────────────
+volumes:
+  mongo-data:
+    name: mongo-data
+
+# ── Network ───────────────────────────────────────────────────────────────────
+networks:
+  app-network:
+    name: app-network
+    driver: bridge

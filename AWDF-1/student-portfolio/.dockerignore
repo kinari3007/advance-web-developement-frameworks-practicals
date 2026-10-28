@@ -1,0 +1,33 @@
+# .dockerignore — Practical 11
+#
+# Prevents large or sensitive paths from being sent to the Docker build context.
+# Applies to both the root Dockerfile (frontend) and server/Dockerfile (backend)
+# because Docker uses the context directory to resolve paths.
+
+# ── Dependencies (reinstalled inside the image by npm ci) ────────────────────
+node_modules
+server/node_modules
+
+# ── Previous build outputs (not needed; Dockerfile runs a fresh build) ────────
+dist
+dist-ssr
+
+# ── Secrets — NEVER copy .env files into images ───────────────────────────────
+.env
+server/.env
+*.env
+
+# ── Git history ───────────────────────────────────────────────────────────────
+.git
+.gitignore
+
+# ── Editor and OS artefacts ───────────────────────────────────────────────────
+.idea
+.vscode
+.DS_Store
+*.suo
+*.sw?
+
+# ── Log files ─────────────────────────────────────────────────────────────────
+*.log
+logs
