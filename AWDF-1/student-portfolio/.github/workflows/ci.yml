@@ -7,7 +7,6 @@
 # in-process using Supertest. They require no live MongoDB connection, no
 # Atlas credentials, and no JWT_SECRET environment variable, so the workflow
 # needs no secrets.
-
 name: CI — Backend Tests
 
 on:
