@@ -195,6 +195,91 @@ app.get('/debug/cache-stats', authenticate, (req, res) => {
   })
 })
 
+// ── AI INTEGRATION — Practical 13: Gemini API ─────────────────────────────────
+//
+// POST /ai/generate-description
+// Protected by authenticate — user must be logged in to use AI features.
+// Reads a task title from the request body and calls Google Gemini API to
+// generate a concise task description. The generated text is returned to the
+// frontend for review; the user must manually save it via POST /tasks.
+//
+// Security: GEMINI_API_KEY stays exclusively on the backend in process.env.
+// Never exposed to the frontend, logged in responses, or returned in errors.
+
+app.post('/ai/generate-description', authenticate, async (req, res, next) => {
+  try {
+    const { title } = req.body
+
+    // Validate input
+    if (!title || typeof title !== 'string' || title.trim() === '') {
+      return res.status(400).json({ error: 'Task title is required' })
+    }
+
+    const apiKey = process.env.GEMINI_API_KEY
+    if (!apiKey || apiKey.trim() === '') {
+      console.error('[Gemini] GEMINI_API_KEY is not configured')
+      return res.status(500).json({ error: 'AI service is not configured' })
+    }
+
+    // Call Gemini REST API using native fetch (Node 18+)
+    // Model: gemini-2.0-flash-exp (free tier, suitable for task descriptions)
+    // Endpoint: /v1beta/models/{model}:generateContent
+    const model = 'gemini-3.8-flash'
+    const url = `https://generativelanguage.googleapis.com/v1beta/models/${model}:generateContent?key=${apiKey}`
+
+    const prompt = `Write a concise, helpful one-sentence description for a task with this title: "${title.trim()}". Focus on what needs to be done.`
+
+    const geminiResponse = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        contents: [
+          {
+            parts: [
+              { text: prompt }
+            ]
+          }
+        ],
+        generationConfig: {
+          temperature: 0.7,
+          maxOutputTokens: 100,
+        }
+      })
+    })
+
+    if (!geminiResponse.ok) {
+      const errorText = await geminiResponse.text()
+      console.error('[Gemini] API error:', geminiResponse.status, errorText)
+      return res.status(502).json({ 
+        error: 'Unable to generate description. Please try again or enter one manually.' 
+      })
+    }
+
+    const data = await geminiResponse.json()
+
+    // Parse Gemini response structure
+    if (!data.candidates || !data.candidates[0] || 
+        !data.candidates[0].content || !data.candidates[0].content.parts ||
+        !data.candidates[0].content.parts[0] || !data.candidates[0].content.parts[0].text) {
+      console.error('[Gemini] Unexpected response structure:', JSON.stringify(data))
+      return res.status(502).json({ 
+        error: 'Received invalid response from AI service. Please try again.' 
+      })
+    }
+
+    const generatedText = data.candidates[0].content.parts[0].text.trim()
+
+    res.status(200).json({ description: generatedText })
+
+  } catch (err) {
+    console.error('[Gemini] Request failed:', err.message)
+    // Never expose API key or internal details to the client
+    return res.status(502).json({ 
+      error: 'Unable to connect to AI service. Please try again or enter a description manually.' 
+    })
+  }
+})
+
 // ── TASK ROUTES — ALL protected by authenticate ───────────────────────────────
 
 // GET /tasks

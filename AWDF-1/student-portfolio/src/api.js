@@ -154,3 +154,22 @@ export async function deleteTask(id) {
   if (!res.ok) throw await buildError(res, 'Unable to delete task.')
   return res.json()
 }
+
+// ── AI integration — Practical 13 ─────────────────────────────────────────────
+
+/**
+ * POST /ai/generate-description — protected
+ * Calls Google Gemini API (via backend) to generate a task description from a title.
+ * @param {string} title  The task title
+ * @returns {Promise<{ description: string }>}
+ */
+export async function generateDescription(title) {
+  const res = await fetch(`${BASE_URL}/ai/generate-description`, {
+    method:  'POST',
+    headers: authHeaders(),
+    body:    JSON.stringify({ title }),
+  })
+  if (!res.ok) throw await buildError(res, 'Unable to generate description.')
+  return res.json()   // { description: "..." }
+}
+

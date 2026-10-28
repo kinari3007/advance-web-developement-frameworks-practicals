@@ -3,6 +3,7 @@ import {
   getTasks, createTask, updateTask, deleteTask,
   register, login, getMe,
   saveToken, getToken, removeToken,
+  generateDescription,
 } from '../api'
 
 // ─────────────────────────────────────────────────────────────────────────────
@@ -342,6 +343,7 @@ function TaskManager({ currentUser, onLogout, addToast }) {
   // loading flags
   const [loadingInit, setLoadingInit] = useState(true)
   const [loadingAdd,  setLoadingAdd]  = useState(false)
+  const [generatingDesc, setGeneratingDesc] = useState(false)  // Practical 13: AI generation
   const [savingId,    setSavingId]    = useState(null)
   const [togglingId,  setTogglingId]  = useState(null)
   const [deletingId,  setDeletingId]  = useState(null)
@@ -408,6 +410,28 @@ function TaskManager({ currentUser, onLogout, addToast }) {
       setLoadingAdd(false)
     }
   }
+
+  // ── GENERATE description with AI (Practical 13) ───────────────────────────
+  const handleGenerateDesc = async () => {
+    const title = formTitle.trim()
+    if (!title) {
+      addToast('Enter a task title first.', 'error')
+      return
+    }
+
+    setGeneratingDesc(true)
+    try {
+      const { description } = await generateDescription(title)
+      setFormDesc(description)
+      addToast('Description generated! You can edit it before saving.', 'success')
+    } catch (err) {
+      if (check401(err)) return
+      addToast('Could not generate description. You can type one manually.', 'error')
+    } finally {
+      setGeneratingDesc(false)
+    }
+  }
+
 
   // ── TOGGLE completed ────────────────────────────────────────────────────────
   const handleToggle = async (task) => {
@@ -554,6 +578,28 @@ function TaskManager({ currentUser, onLogout, addToast }) {
             <input type="text" className="repos-search" style={{ maxWidth: '100%' }}
               placeholder="Task title…" value={formTitle}
               onChange={e => setFormTitle(e.target.value)} disabled={loadingAdd} aria-label="New task title" />
+            
+            {/* Practical 13: AI-powered description generator */}
+            <button
+              type="button"
+              onClick={handleGenerateDesc}
+              disabled={generatingDesc || loadingAdd || !formTitle.trim()}
+              className="btn-outline"
+              style={{
+                alignSelf: 'flex-start',
+                padding: '10px 20px',
+                fontSize: '11px',
+                opacity: (generatingDesc || loadingAdd || !formTitle.trim()) ? 0.5 : 1,
+                cursor: (generatingDesc || loadingAdd || !formTitle.trim()) ? 'not-allowed' : 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '8px',
+              }}
+            >
+              <span style={{ fontSize: '14px' }}>✦</span>
+              {generatingDesc ? 'Generating…' : 'Generate description with AI'}
+            </button>
+            
             <textarea className="repos-search"
               style={{ maxWidth: '100%', resize: 'vertical', minHeight: '80px', lineHeight: '1.6' }}
               placeholder="Description (optional)…" value={formDesc}

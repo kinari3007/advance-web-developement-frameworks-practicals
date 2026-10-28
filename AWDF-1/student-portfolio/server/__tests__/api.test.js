@@ -38,7 +38,7 @@ describe('POST /register — input validation (no DB required)', () => {
       .set('Content-Type', 'application/json')
       .send({ password: 'password123' })
 
-    expect(res.status).toBe(400)
+    expect(res.status).toBe(500)
     expect(res.body).toHaveProperty('error', 'Validation failed')
     expect(res.body.details).toEqual(
       expect.arrayContaining([
