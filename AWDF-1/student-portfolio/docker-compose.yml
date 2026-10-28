@@ -2,34 +2,39 @@
 #
 # Three services:
 #   taskmgr-mongodb   — MongoDB 7 with a persistent named volume
-#   taskmgr-backend   — Express/Node.js API (Practicals 5-10)
+#   taskmgr-backend   — Express/Node.js API (Practicals 5–10)
 #   taskmgr-frontend  — React/Vite SPA served by Nginx
 #
 # All services communicate over the private bridge network "app-network".
-# Only the ports the end-user needs (5000 and 5173) are published to the host.
+#
+# IMPORTANT — root .env must define:
+#   MONGO_ROOT_USER   root username for the MongoDB container
+#   MONGO_ROOT_PASS   root password for the MongoDB container
+#   MONGO_URI         full connection string the backend uses
+#                     (must use service hostname taskmgr-mongodb, not localhost)
+#   JWT_SECRET        long random string for JWT signing
+#
+# Copy .env.example → .env and fill in real values before running.
 
 services:
 
-  # ── MongoDB ──────────────────────────────────────────────────────────────────
+  # ── MongoDB ────────────────────────────────────────────────────────────────
   taskmgr-mongodb:
     image: mongo:7
     container_name: taskmgr-mongodb
     restart: unless-stopped
     environment:
-      # These credentials create the root admin user on first start.
-      # Change them before any deployment beyond a local development machine.
       MONGO_INITDB_ROOT_USERNAME: ${MONGO_ROOT_USER:-admin}
       MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASS:-changeme}
       MONGO_INITDB_DATABASE: awdf_tasks
     volumes:
-      # Named volume keeps data between container restarts and rebuilds.
       - mongo-data:/data/db
     networks:
       - app-network
-    # MongoDB is NOT published to the host — only the backend needs it.
-    # Exposing 27017 to the host is a security risk in any shared environment.
+    # Port 27017 is intentionally NOT published to the host.
+    # Only the backend container needs it; exposing it is unnecessary.
 
-  # ── Backend ───────────────────────────────────────────────────────────────────
+  # ── Backend ────────────────────────────────────────────────────────────────
   taskmgr-backend:
     build:
       context: ./server
@@ -39,20 +44,22 @@ services:
     depends_on:
       - taskmgr-mongodb
     environment:
-      # Inside Docker, the MongoDB hostname is the Compose service name.
-      # The URI uses the root credentials created above.
-      # authSource=admin is required when connecting with the root user.
-      MONGO_URI: mongodb://${MONGO_ROOT_USER:-admin}:${MONGO_ROOT_PASS:-changeme}@taskmgr-mongodb:27017/awdf_tasks?authSource=admin
+      # MONGO_URI is read directly from the root .env.
+      # It must use the Compose service hostname "taskmgr-mongodb" (not localhost).
+      # Example value (set in root .env, never commit real credentials):
+      #   MONGO_URI=mongodb://admin:changeme@taskmgr-mongodb:27017/awdf_tasks?authSource=admin
+      MONGO_URI: ${MONGO_URI:?MONGO_URI must be set in root .env}
       PORT: 5000
-      # JWT_SECRET MUST be overridden in a .env file at the project root.
-      # Never commit the real value. See .env.example for the variable name.
-      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in the root .env file}
+      JWT_SECRET: ${JWT_SECRET:?JWT_SECRET must be set in root .env}
     ports:
-      - "5000:5000"
+      # Host port 5001 → container port 5000.
+      # Using 5001 avoids a conflict when the Node dev server is already
+      # running on host port 5000 outside Docker.
+      - "5001:5000"
     networks:
       - app-network
 
-  # ── Frontend ──────────────────────────────────────────────────────────────────
+  # ── Frontend ───────────────────────────────────────────────────────────────
   taskmgr-frontend:
     build:
       context: .
@@ -62,8 +69,7 @@ services:
     depends_on:
       - taskmgr-backend
     ports:
-      # Map Nginx port 80 inside the container to port 5173 on the host so
-      # the existing URL http://localhost:5173 continues to work.
+      # Nginx listens on 80 inside the container; mapped to 5173 on the host.
       - "5173:80"
     networks:
       - app-network

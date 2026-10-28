@@ -1,18 +1,3 @@
-# ── Dockerfile (root) — Practical 11 ─────────────────────────────────────────
-#
-# Multi-stage build for the React + Vite frontend.
-#
-# Stage 1 (builder): installs dependencies, runs "vite build", produces dist/
-# Stage 2 (runtime): copies dist/ into a lightweight Nginx image to serve it
-#
-# Why Nginx instead of "vite preview"?
-#   - vite preview is a development convenience, not a production server.
-#   - nginx:alpine is ~25 MB, starts instantly, and handles static files
-#     efficiently without a Node.js runtime in the final image.
-#
-# The frontend container serves on port 80 inside the container.
-# docker-compose.yml maps that to port 5173 on the host so the URL
-# http://localhost:5173 continues to work as before.
 
 # ── Stage 1: build ────────────────────────────────────────────────────────────
 FROM node:20-alpine AS builder

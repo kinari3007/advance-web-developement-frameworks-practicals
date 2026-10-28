@@ -6,7 +6,10 @@
  * Auth functions (register / login) are public — no token needed.
  */
 
-const BASE_URL = 'http://localhost:5000'
+// Practical 11: host port changed to 5001 to avoid conflict with the local
+// Node dev server that may already be bound to 5000 outside Docker.
+// The backend container still listens on 5000 internally; Docker maps 5001→5000.
+const BASE_URL = 'http://localhost:5001'
 
 // ── Token storage helpers ─────────────────────────────────────────────────────
 // sessionStorage keeps the token for the browser session only.

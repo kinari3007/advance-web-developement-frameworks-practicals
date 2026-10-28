@@ -1,0 +1,50 @@
+# .github/workflows/ci.yml — Practical 12: CI/CD Pipeline with GitHub Actions
+#
+# Runs the backend Jest/Supertest test suite automatically on every push to
+# main and on every pull request targeting main.
+#
+# The tests (server/__tests__/api.test.js) test middleware and authentication
+# in-process using Supertest. They require no live MongoDB connection, no
+# Atlas credentials, and no JWT_SECRET environment variable, so the workflow
+# needs no secrets.
+
+name: CI — Backend Tests
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    name: Run Jest tests (Node 24)
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Check out the repository so the runner has the source code
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      # 2. Set up Node.js 24 — matches the version on the development machine
+      - name: Set up Node.js 24
+        uses: actions/setup-node@v4
+        with:
+          node-version: '24'
+          cache: 'npm'
+          cache-dependency-path: server/package-lock.json
+
+      # 3. Install exact dependency versions from the lock file.
+      #    --prefix tells npm to work inside the server/ subdirectory.
+      - name: Install backend dependencies
+        run: npm ci
+        working-directory: server
+
+      # 4. Run the test suite. A non-zero exit code fails the workflow.
+      #    No environment variables are needed — all 14 tests hit middleware
+      #    that resolves before any MongoDB or JWT operation.
+      - name: Run tests
+        run: npm test
+        working-directory: server

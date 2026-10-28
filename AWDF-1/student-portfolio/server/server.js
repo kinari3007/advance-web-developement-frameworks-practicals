@@ -411,31 +411,53 @@ app.use((err, req, res, next) => {
 })
 
 // ── MongoDB → then start server ───────────────────────────────────────────────
-const MONGO_URI  = process.env.MONGO_URI
-const JWT_SECRET = process.env.JWT_SECRET
+//
+// Practical 12: startup is guarded by `require.main === module`.
+//
+// WHY: when Jest/Supertest imports this file (`require('./server')`),
+// `require.main` is the Jest runner — not this file — so this block is
+// skipped. No port is bound, no MongoDB connection is opened, and
+// process.exit() is never called during tests.
+//
+// When you run `node server.js` normally, `require.main === module` is true
+// and the entire existing startup sequence runs exactly as before — dotenv
+// check, MONGO_URI guard, JWT_SECRET guard, mongoose.connect, app.listen.
+//
+// module.exports at the bottom lets Supertest receive the Express app
+// instance without triggering any side-effects.
 
-if (!MONGO_URI || MONGO_URI.includes('USERNAME:PASSWORD')) {
-  console.error('\n[ERROR] MONGO_URI is not configured in server/.env\n')
-  process.exit(1)
-}
+if (require.main === module) {
+  const MONGO_URI  = process.env.MONGO_URI
+  const JWT_SECRET = process.env.JWT_SECRET
 
-if (!JWT_SECRET) {
-  console.error('\n[ERROR] JWT_SECRET is not configured in server/.env\n')
-  process.exit(1)
-}
-
-mongoose
-  .connect(MONGO_URI, { dbName: 'awdf_tasks' })
-  .then(() => {
-    console.log('[MongoDB] Connected — database: awdf_tasks')
-    app.listen(PORT, () => {
-      console.log(`[Server]  Running on http://localhost:${PORT}`)
-      console.log(`[Auth]    JWT authentication is active`)
-      console.log(`[Cache]   node-cache active — TTL=60s  debug: GET /debug/cache-stats`)
-      console.log(`[Events]  EventEmitter listeners registered (task-created, task-deleted, error)`)
-    })
-  })
-  .catch(err => {
-    console.error('[MongoDB] Connection failed:', err.message)
+  if (!MONGO_URI || MONGO_URI.includes('USERNAME:PASSWORD')) {
+    console.error('\n[ERROR] MONGO_URI is not configured in server/.env\n')
     process.exit(1)
-  })
+  }
+
+  if (!JWT_SECRET) {
+    console.error('\n[ERROR] JWT_SECRET is not configured in server/.env\n')
+    process.exit(1)
+  }
+
+  mongoose
+    .connect(MONGO_URI, { dbName: 'awdf_tasks' })
+    .then(() => {
+      console.log('[MongoDB] Connected — database: awdf_tasks')
+      app.listen(PORT, () => {
+        console.log(`[Server]  Running on http://localhost:${PORT}`)
+        console.log(`[Auth]    JWT authentication is active`)
+        console.log(`[Cache]   node-cache active — TTL=60s  debug: GET /debug/cache-stats`)
+        console.log(`[Events]  EventEmitter listeners registered (task-created, task-deleted, error)`)
+      })
+    })
+    .catch(err => {
+      console.error('[MongoDB] Connection failed:', err.message)
+      process.exit(1)
+    })
+}
+
+// ── Export for Jest / Supertest ───────────────────────────────────────────────
+// Importing this file in a test gives back the configured Express app.
+// No port is opened and no database connection is attempted on import.
+module.exports = app
