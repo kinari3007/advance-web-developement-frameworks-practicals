@@ -1,2 +1,3 @@
 # advance-web-developement-frameworks-practicals
+[![CI - Backend Tests](https://github.com/kinari3007/advance-web-developement-frameworks-practicals/actions/workflows/ci.yml/badge.svg)](https://github.com/kinari3007/advance-web-developement-frameworks-practicals/actions/workflows/ci.yml)
 ...
